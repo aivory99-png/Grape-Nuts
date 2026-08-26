@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import GrapesNutsLogo from '@/components/logo'
 
 const STORAGE_KEY = (uid?: string) => `gn_guided_tour_seen_v1_${uid ?? 'anon'}`
 
@@ -27,8 +28,11 @@ const ICONS = {
   close:    ['M18 6L6 18', 'M6 6l12 12'],
 }
 
-/* ── Step config ── */
+/* ── Types ── */
+type TourCtx = { firstName: string; wineCount: number; clientCount: number }
+
 type StepConfig = {
+  isIntro?: true
   page: string
   selector: string
   icon: keyof typeof ICONS
@@ -41,13 +45,24 @@ type StepConfig = {
   tips: (ctx: TourCtx) => string[]
 }
 
-type TourCtx = {
-  firstName: string
-  wineCount: number
-  clientCount: number
+type Rect = { top: number; left: number; width: number; height: number }
+
+/* ── Step 0: intro splash (no spotlight) ── */
+const INTRO_STEP: StepConfig = {
+  isIntro: true,
+  page: '/dashboard',
+  selector: '',
+  icon: 'chart',
+  gradient: '',
+  iconBg: '', dot: '',
+  subtitle: '',
+  title: '',
+  body: () => '',
+  tips: () => [],
 }
 
-const STEP_CONFIGS: StepConfig[] = [
+/* ── Steps 1–7: interactive spotlight ── */
+const SPOTLIGHT_STEPS: StepConfig[] = [
   {
     page: '/dashboard',
     selector: '[data-tour="kpi-cards"]',
@@ -166,8 +181,8 @@ const STEP_CONFIGS: StepConfig[] = [
   },
 ]
 
-/* ── Types ── */
-type Rect = { top: number; left: number; width: number; height: number }
+/* All steps: intro + spotlights */
+const ALL_STEPS: StepConfig[] = [INTRO_STEP, ...SPOTLIGHT_STEPS]
 
 /* ── Helpers ── */
 async function waitForElement(selector: string, retries = 16): Promise<Element | null> {
@@ -178,7 +193,6 @@ async function waitForElement(selector: string, retries = 16): Promise<Element |
   }
   return null
 }
-
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)) }
 
 /* ── Component ── */
@@ -203,17 +217,16 @@ export default function GuidedTour({
   const [animDir,    setAnimDir]    = useState<'next' | 'prev'>('next')
   const [animating,  setAnimating]  = useState(false)
   const [cardPos,    setCardPos]    = useState<{ top: number; left: number } | null>(null)
-
-  /* real data from Supabase */
-  const [wineCount,   setWineCount]   = useState(0)
-  const [clientCount, setClientCount] = useState(0)
+  const [wineCount,  setWineCount]  = useState(0)
+  const [clientCount,setClientCount]= useState(0)
 
   const overlayRef = useRef<HTMLDivElement>(null)
   const cardRef    = useRef<HTMLDivElement>(null)
 
   const firstName = (userName ?? 'Paulo').split(' ')[0]
+  const ctx: TourCtx = { firstName, wineCount, clientCount }
 
-  /* fetch real stats once */
+  /* fetch real stats */
   useEffect(() => {
     const sb = createClient()
     Promise.all([
@@ -225,14 +238,12 @@ export default function GuidedTour({
     })
   }, [])
 
-  /* expose open fn */
   const openTour = useCallback(() => {
     setStepIdx(0); setActive(true); setNavigating(false)
     setTargetRect(null); setCardPos(null)
   }, [])
   useEffect(() => { onOpen?.(openTour) }, [onOpen, openTour])
 
-  /* auto-open first visit */
   useEffect(() => {
     if (skipAutoOpen) return
     if (!localStorage.getItem(STORAGE_KEY(userId))) {
@@ -241,75 +252,62 @@ export default function GuidedTour({
     }
   }, [userId, skipAutoOpen])
 
-  const stepConfig = STEP_CONFIGS[stepIdx]
-  const ctx: TourCtx = { firstName, wineCount, clientCount }
+  const stepCfg = ALL_STEPS[stepIdx]
+  const isIntro = !!stepCfg.isIntro
+  const TOTAL   = ALL_STEPS.length
 
-  /* current step with resolved content */
-  const step = {
-    ...stepConfig,
-    bodyText: stepConfig.body(ctx),
-    tipsText: stepConfig.tips(ctx),
-  }
-
-  /* navigate to step's page */
+  /* navigate */
   useEffect(() => {
-    if (!active) return
-    if (pathname !== step.page) {
+    if (!active || isIntro) return
+    if (pathname !== stepCfg.page) {
       setNavigating(true); setTargetRect(null); setCardPos(null)
-      router.push(step.page)
+      router.push(stepCfg.page)
     } else {
       setNavigating(false)
     }
-  }, [active, stepIdx, step.page, pathname, router])
+  }, [active, stepIdx, stepCfg.page, isIntro, pathname, router])
 
-  /* find element + measure */
+  /* find element */
   useEffect(() => {
-    if (!active || navigating || pathname !== step.page) return
+    if (!active || isIntro || navigating || pathname !== stepCfg.page) return
     let cancelled = false
     ;(async () => {
-      const el = await waitForElement(step.selector)
+      const el = await waitForElement(stepCfg.selector)
       if (cancelled) return
       if (!el) { setTargetRect(null); return }
       const r = el.getBoundingClientRect()
       const PAD = 10
       setTargetRect({ top: r.top - PAD, left: r.left - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 })
-      if (r.top < 80 || r.bottom > window.innerHeight - 80) {
+      if (r.top < 80 || r.bottom > window.innerHeight - 80)
         el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }
     })()
     return () => { cancelled = true }
-  }, [active, navigating, stepIdx, step.selector, step.page, pathname])
+  }, [active, isIntro, navigating, stepIdx, stepCfg.selector, stepCfg.page, pathname])
 
-  /* position card near element */
+  /* position tooltip */
   useEffect(() => {
     if (!targetRect || !cardRef.current) { setCardPos(null); return }
-    const CARD_W = 340
+    const CARD_W = 340, MARGIN = 14
     const CARD_H = cardRef.current.offsetHeight || 460
-    const MARGIN = 14
-    const vw = window.innerWidth
-    const vh = window.innerHeight
-
+    const vw = window.innerWidth, vh = window.innerHeight
     const below = vh - (targetRect.top + targetRect.height)
     const above = targetRect.top
-    let top = below >= CARD_H + MARGIN
+    const top = below >= CARD_H + MARGIN
       ? targetRect.top + targetRect.height + MARGIN
       : above >= CARD_H + MARGIN
         ? targetRect.top - CARD_H - MARGIN
         : vh - CARD_H - 16
-
     const left = clamp(targetRect.left + targetRect.width / 2 - CARD_W / 2, 12, vw - CARD_W - 12)
     setCardPos({ top: clamp(top, 8, vh - CARD_H - 8), left })
   }, [targetRect])
 
-  /* close */
   function close() {
     setActive(false); setTargetRect(null); setNavigating(false); setCardPos(null)
     localStorage.setItem(STORAGE_KEY(userId), '1')
   }
 
-  /* animated navigation */
   function goTo(idx: number) {
-    if (animating || idx < 0 || idx >= STEP_CONFIGS.length) return
+    if (animating || idx < 0 || idx >= ALL_STEPS.length) return
     setAnimDir(idx > stepIdx ? 'next' : 'prev')
     setAnimating(true)
     setTimeout(() => { setStepIdx(idx); setTargetRect(null); setCardPos(null); setAnimating(false) }, 180)
@@ -317,22 +315,157 @@ export default function GuidedTour({
 
   if (!active) return null
 
-  const TOTAL  = STEP_CONFIGS.length
   const isLast = stepIdx === TOTAL - 1
   const vw = typeof window !== 'undefined' ? window.innerWidth  : 1440
   const vh = typeof window !== 'undefined' ? window.innerHeight : 900
-  const cx = targetRect
+  const cx = targetRect && !isIntro
     ? { x: targetRect.left, y: targetRect.top, w: targetRect.width, h: targetRect.height, r: 14 }
     : null
+
+  /* ── Render intro splash ── */
+  if (isIntro) {
+    return (
+      <>
+        <style>{`
+          @keyframes gn-fade-up { from { opacity:0; transform:translateY(16px) } to { opacity:1; transform:none } }
+          .gn-fade-up { animation: gn-fade-up .4s ease both }
+        `}</style>
+        <div
+          className="fixed inset-0 z-[9900] flex items-center justify-center p-5"
+          style={{ background: 'rgba(10,5,18,0.85)', backdropFilter: 'blur(10px)' }}
+        >
+          <div
+            className="gn-fade-up w-full rounded-3xl shadow-2xl overflow-hidden bg-app-card"
+            style={{ maxWidth: 480 }}
+          >
+            {/* Header */}
+            <div
+              className="relative px-8 pt-10 pb-8 text-center overflow-hidden"
+              style={{ background: 'linear-gradient(145deg, #1a0a24 0%, #3b0f2f 45%, #7c1d45 100%)' }}
+            >
+              <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-10"
+                style={{ background: 'radial-gradient(circle, #c2185b, transparent)' }} />
+              <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full opacity-10"
+                style={{ background: 'radial-gradient(circle, #9c27b0, transparent)' }} />
+
+              {/* Close */}
+              <button onClick={close}
+                className="absolute top-3 right-3 text-white/30 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+                aria-label="Fechar">
+                <Icon d={ICONS.close} size={15} />
+              </button>
+
+              <div className="relative">
+                <div className="flex justify-center mb-5">
+                  <div className="rounded-2xl p-3.5" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                    <GrapesNutsLogo size="md" />
+                  </div>
+                </div>
+                <div
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4"
+                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-[11px] font-semibold text-white/70 tracking-wide">TUDO A FUNCIONAR</span>
+                </div>
+                <h2 className="text-white text-2xl font-bold leading-tight mb-1">
+                  {firstName}, a sua plataforma<br />está pronta! 🎉
+                </h2>
+                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  Grape&Nuts · implementado pela DeTech
+                </p>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="px-8 pt-6 pb-2 space-y-5">
+
+              {/* Message */}
+              <p className="text-sm leading-relaxed text-app-text">
+                Sabemos que vir do Excel pode parecer avassalador —
+                mas não se preocupe. A equipa <span className="font-semibold text-app-text">DeTech</span> configurou
+                e implementou tudo com cuidado, exatamente como pediu.
+              </p>
+
+              {/* Data pills */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { emoji: '🍷', label: wineCount > 0 ? `${wineCount} vinhos` : 'Vinhos', sub: 'carregados e prontos' },
+                  { emoji: '🤝', label: clientCount > 0 ? `${clientCount} clientes` : 'Clientes', sub: 'registados e ativos' },
+                  { emoji: '📦', label: 'Estoque',   sub: 'configurado e ativo' },
+                  { emoji: '💸', label: 'Cobranças', sub: 'integradas nos pedidos' },
+                ].map((item, i) => (
+                  <div key={i}
+                    className="flex items-center gap-3 rounded-2xl px-4 py-3"
+                    style={{ background: 'rgba(159,18,57,0.06)', border: '1px solid rgba(159,18,57,0.12)' }}
+                  >
+                    <span className="text-xl flex-shrink-0">{item.emoji}</span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-app-text leading-none mb-0.5">{item.label}</p>
+                      <p className="text-[11px] text-app-text3 leading-none">{item.sub}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* DeTech promise */}
+              <div
+                className="rounded-2xl px-4 py-3.5 flex gap-3"
+                style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.15)' }}
+              >
+                <span className="text-lg flex-shrink-0 mt-0.5">💬</span>
+                <p className="text-[13px] text-app-text2 leading-relaxed">
+                  A equipa <span className="font-semibold text-app-text">DeTech</span> está
+                  aqui para implementar o que precisar e responder a qualquer questão.
+                  Este tour mostra cada parte da plataforma em menos de 3 minutos.
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="px-8 pb-6 pt-5 space-y-2">
+              <button
+                onClick={() => goTo(1)}
+                className="w-full py-4 rounded-2xl text-white text-sm font-bold transition-all shadow-lg active:scale-[.98] flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #9f1239 0%, #be123c 100%)' }}
+              >
+                <span>Começar o tour</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+              <button
+                onClick={close}
+                className="w-full py-2.5 rounded-2xl text-sm text-app-text3 hover:text-app-text transition-colors"
+              >
+                Explorar por conta própria
+              </button>
+            </div>
+
+            {/* Footer */}
+            <div className="px-8 pb-5 text-center">
+              <p className="text-[11px] text-app-text3">
+                Feito com cuidado pela equipa{' '}
+                <span className="font-semibold text-app-text2">DeTech</span>
+                {' '}para o <span className="font-medium text-app-text2">Grape&Nuts</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  /* ── Render spotlight steps ── */
   const pos = cardPos ?? { top: vh / 2 - 230, left: vw / 2 - 170 }
+  const resolvedBody = stepCfg.body(ctx)
+  const resolvedTips = stepCfg.tips(ctx)
 
   return (
     <>
       <style>{`
         @keyframes gn-pulse-ring {
-          0%   { transform: scale(1);     opacity: .9; }
-          50%  { transform: scale(1.035); opacity: .35; }
-          100% { transform: scale(1);     opacity: .9; }
+          0%   { transform:scale(1);     opacity:.9; }
+          50%  { transform:scale(1.035); opacity:.35; }
+          100% { transform:scale(1);     opacity:.9; }
         }
         .gn-ring { animation: gn-pulse-ring 1.9s ease-in-out infinite; }
       `}</style>
@@ -363,19 +496,19 @@ export default function GuidedTour({
           )}
         </svg>
 
-        {/* Navigating state */}
+        {/* Navigating */}
         {navigating && (
           <div className="absolute inset-0 flex items-center justify-center" style={{ pointerEvents: 'none' }}>
             <div className="bg-white rounded-2xl shadow-2xl px-8 py-6 flex flex-col items-center gap-3 max-w-xs text-center">
               <div className="w-8 h-8 rounded-full border-2 border-wine-200 border-t-wine-600 animate-spin" />
               <p className="text-sm font-medium text-app-text">
-                A navegar para <span className="font-bold">{step.title}</span>…
+                A navegar para <span className="font-bold">{stepCfg.title}</span>…
               </p>
             </div>
           </div>
         )}
 
-        {/* Tour card */}
+        {/* Tooltip card */}
         {!navigating && (
           <div
             ref={cardRef}
@@ -383,12 +516,10 @@ export default function GuidedTour({
             style={{ width: 340, top: pos.top, left: pos.left, zIndex: 9910, pointerEvents: 'auto' }}
           >
             {/* Gradient header */}
-            <div className={`bg-gradient-to-br ${step.gradient} px-6 pt-6 pb-7 relative`}>
-              <button
-                onClick={close}
+            <div className={`bg-gradient-to-br ${stepCfg.gradient} px-6 pt-6 pb-7 relative`}>
+              <button onClick={close}
                 className="absolute top-3 right-3 text-white/40 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
-                aria-label="Fechar tour"
-              >
+                aria-label="Fechar tour">
                 <Icon d={ICONS.close} size={15} />
               </button>
 
@@ -399,37 +530,39 @@ export default function GuidedTour({
                   transform: animating ? (animDir === 'next' ? 'translateX(16px)' : 'translateX(-16px)') : 'none',
                 }}
               >
-                <div className={`${step.iconBg} w-11 h-11 rounded-2xl flex items-center justify-center mb-3 text-white`}>
-                  <Icon d={ICONS[step.icon]} size={22} />
+                <div className={`${stepCfg.iconBg} w-11 h-11 rounded-2xl flex items-center justify-center mb-3 text-white`}>
+                  <Icon d={ICONS[stepCfg.icon]} size={22} />
                 </div>
-                <p className="text-white/55 text-[10px] font-semibold uppercase tracking-widest mb-0.5">{step.subtitle}</p>
-                <h2 className="text-white text-xl font-bold leading-tight">{step.title}</h2>
+                <p className="text-white/55 text-[10px] font-semibold uppercase tracking-widest mb-0.5">{stepCfg.subtitle}</p>
+                <h2 className="text-white text-xl font-bold leading-tight">{stepCfg.title}</h2>
               </div>
 
-              {/* Progress dots */}
+              {/* Progress dots — skip intro dot (index 0) */}
               <div className="flex gap-1.5 mt-4">
-                {STEP_CONFIGS.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => goTo(i)}
-                    className="h-1.5 rounded-full transition-all duration-300"
-                    style={{
-                      background: i === stepIdx ? 'white' : 'rgba(255,255,255,0.28)',
-                      width: i === stepIdx ? '20px' : '6px',
-                    }}
-                  />
-                ))}
+                {SPOTLIGHT_STEPS.map((_, i) => {
+                  const realIdx = i + 1
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => goTo(realIdx)}
+                      className="h-1.5 rounded-full transition-all duration-300"
+                      style={{
+                        background: realIdx === stepIdx ? 'white' : 'rgba(255,255,255,0.28)',
+                        width: realIdx === stepIdx ? '20px' : '6px',
+                      }}
+                    />
+                  )
+                })}
               </div>
             </div>
 
             {/* Body */}
             <div className="px-6 py-5 transition-all duration-200" style={{ opacity: animating ? 0 : 1 }}>
-              <p className="text-app-text text-sm leading-relaxed mb-4">{step.bodyText}</p>
-
+              <p className="text-app-text text-sm leading-relaxed mb-4">{resolvedBody}</p>
               <ul className="space-y-2.5">
-                {step.tipsText.map((tip, i) => (
+                {resolvedTips.map((tip, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <span className={`${step.dot} text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                    <span className={`${stepCfg.dot} text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5`}>
                       {i + 1}
                     </span>
                     <span className="text-[13px] text-app-text2 leading-snug">{tip}</span>
@@ -442,12 +575,14 @@ export default function GuidedTour({
             <div className="px-6 pb-5 pt-3 flex items-center justify-between border-t border-app-border gap-2">
               <button
                 onClick={() => goTo(stepIdx - 1)}
-                disabled={stepIdx === 0}
+                disabled={stepIdx <= 1}
                 className="px-3 py-2 text-sm text-app-text2 hover:text-app-text disabled:opacity-0 disabled:pointer-events-none transition-colors"
               >
                 ← Anterior
               </button>
-              <span className="text-[11px] text-app-text3 font-mono tabular-nums">{stepIdx + 1} / {TOTAL}</span>
+              <span className="text-[11px] text-app-text3 font-mono tabular-nums">
+                {stepIdx} / {TOTAL - 1}
+              </span>
               {isLast ? (
                 <button
                   onClick={close}

@@ -4,9 +4,9 @@ type Dict = Record<string, { pt: string; es: string }>
 
 export const i18n = {
   // Nav
-  nav_dashboard:    { pt: 'Financeiro', es: 'Finanzas' },
+  nav_dashboard:    { pt: 'Finanças', es: 'Finanzas' },
   nav_clients:      { pt: 'Clientes',      es: 'Clientes' },
-  nav_payments:     { pt: 'Financeiro',    es: 'Finanzas' },
+  nav_payments:     { pt: 'Finanças',      es: 'Finanzas' },
   nav_stock:        { pt: 'Estoque',       es: 'Stock' },
   nav_new_sale:     { pt: 'Novo Pedido',   es: 'Nuevo Pedido' },
   nav_settings:     { pt: 'Config.',       es: 'Config.' },

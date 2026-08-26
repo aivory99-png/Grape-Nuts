@@ -70,7 +70,7 @@ const SPOTLIGHT_STEPS: StepConfig[] = [
     gradient: 'from-slate-800 to-slate-700',
     iconBg: 'bg-blue-500/20', dot: 'bg-blue-400',
     subtitle: 'O seu negócio de relance',
-    title: 'Painel Financeiro',
+    title: 'Painel Finanças',
     body: ({ firstName }) =>
       `${firstName}, aqui você vê tudo o que importa sem abrir o Excel — receita do mês, pedidos em aberto, cobranças vencidas e pagamentos recebidos, tudo a tempo real.`,
     tips: () => [

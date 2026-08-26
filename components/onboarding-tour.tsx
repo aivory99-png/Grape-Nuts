@@ -50,7 +50,7 @@ type Step = {
 const STEPS: Step[] = [
   {
     icon: 'chart',
-    title:    { es: 'Finanzas',                      pt: 'Financeiro' },
+    title:    { es: 'Finanzas',                      pt: 'Finanças' },
     subtitle: { es: 'Tu negocio de un vistazo',      pt: 'O seu negócio de relance' },
     body: {
       es: 'El Panel de Gestión muestra los KPIs clave: Ingresos del mes, Stock total y clientes activos. El gráfico de barras es interactivo — haz clic en un mes para filtrar todos los datos.',

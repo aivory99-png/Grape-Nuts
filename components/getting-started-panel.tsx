@@ -50,7 +50,7 @@ const STEPS: PanelStep[] = [
       es: 'En el Panel de Gestión verás el gráfico de ingresos por mes, los KPIs de Ingresos del mes, Stock total y clientes activos, y la tabla de Pedidos Recientes. Haz clic en una barra del gráfico para filtrar todo por ese mes.',
       pt: 'No Painel de Gestão você verá o gráfico de receita por mês, os KPIs de Receita do mês, Estoque total e clientes ativos, e a tabela de Pedidos Recentes. Clique em uma barra do gráfico para filtrar tudo por aquele mês.',
     },
-    actions: [{ label: { es: '→ Ver Finanzas', pt: '→ Ver Financeiro' }, href: '/dashboard' }],
+    actions: [{ label: { es: '→ Ver Finanzas', pt: '→ Ver Finanças' }, href: '/dashboard' }],
   },
   {
     title:   { es: 'Gestiona Cobros y envíos',       pt: 'Gerencie Cobranças e envios' },

@@ -269,7 +269,7 @@ export default async function DashboardPage() {
       <div className="mb-6 flex items-end justify-between gap-2">
         <div>
           <h1 className="text-xl font-bold text-app-text">
-            {lang === 'pt' ? 'Financeiro' : 'Finanzas'}
+            {lang === 'pt' ? 'Finanças' : 'Finanzas'}
           </h1>
           <p className="text-sm text-app-text3">
             {now.toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'es-CL', { weekday: 'long', day: '2-digit', month: 'long' })}

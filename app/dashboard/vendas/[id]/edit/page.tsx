@@ -52,7 +52,7 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto">
       <div className="mb-5 flex items-center gap-3">
-        <a href="/dashboard" className="text-sm text-app-text3 hover:text-app-text transition-colors">← Financeiro</a>
+        <a href="/dashboard" className="text-sm text-app-text3 hover:text-app-text transition-colors">← Finanças</a>
       </div>
       <div className="mb-5">
         <h1 className="text-xl font-bold text-app-text">

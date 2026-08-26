@@ -332,7 +332,7 @@ export default function GuidedTour({
         `}</style>
         <div
           className="fixed inset-0 z-[9900] flex items-center justify-center p-5"
-          style={{ background: 'rgba(10,5,18,0.85)', backdropFilter: 'blur(10px)' }}
+          style={{ background: 'rgba(10,5,18,0.85)', backdropFilter: 'blur(4px)' }}
         >
           <div
             className="gn-fade-up w-full rounded-3xl shadow-2xl overflow-hidden bg-app-card"
@@ -473,7 +473,7 @@ export default function GuidedTour({
       <div
         ref={overlayRef}
         className="fixed inset-0 z-[9900]"
-        style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
+        style={{ pointerEvents: 'auto' }}
         onClick={e => { if (e.target === overlayRef.current) close() }}
       >
         {/* SVG spotlight */}

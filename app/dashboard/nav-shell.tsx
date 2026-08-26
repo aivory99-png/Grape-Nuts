@@ -113,10 +113,9 @@ export default function NavShell({
       <aside className="hidden md:flex w-56 flex-shrink-0 flex-col bg-white border-r border-app-border">
 
         {/* Brand */}
-        <div className="px-3 py-3 border-b border-app-border flex items-center justify-center">
-          <div className="bg-zinc-900 rounded-xl px-3 py-2 flex items-center justify-center">
-            <GrapesNutsLogo size="md" />
-          </div>
+        <div className="flex-shrink-0 flex items-center justify-center px-5 py-5 border-b border-zinc-800"
+          style={{ background: 'linear-gradient(160deg, #111 0%, #1c0a14 100%)' }}>
+          <GrapesNutsLogo size="md" />
         </div>
 
         {/* Nav */}

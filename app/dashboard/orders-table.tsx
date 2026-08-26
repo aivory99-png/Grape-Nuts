@@ -349,8 +349,8 @@ export default function OrdersTable({ rows: initialRows, lang }: { rows: OrderRo
               <th className={thSortWrap} style={{ width: 80 }} onClick={() => handleSortClick('orderDate')}>
                 Pedido<br/>confirmado<SortIcon col="orderDate" />
               </th>
-              <th className={thSortWrap} style={{ width: 160 }} onClick={() => handleSortClick('paymentType')}>
-                {lang === 'pt' ? 'Forma de pagto' : 'Forma de pago'}<br/>{lang === 'pt' ? 'e prazo' : 'y plazo'}<SortIcon col="paymentType" />
+              <th className={thSort} style={{ width: 160 }} onClick={() => handleSortClick('paymentType')}>
+                {lang === 'pt' ? 'Pagto / Prazo' : 'Pago / Plazo'}<SortIcon col="paymentType" />
               </th>
               <th className={thSortWrap} style={{ width: 80 }} onClick={() => handleSortClick('dueDate')}>
                 {lang === 'pt' ? 'Vencimento' : 'Vencimiento'}<br/>{lang === 'pt' ? 'fatura' : 'factura'}<SortIcon col="dueDate" />

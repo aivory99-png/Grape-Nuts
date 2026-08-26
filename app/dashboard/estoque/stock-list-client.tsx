@@ -228,12 +228,12 @@ export default function StockListClient({
   const router = useRouter()
 
   // ── View mode ──────────────────────────────────────────────────────────────
-  const [viewMode, setViewMode] = useState<'board' | 'list'>('list')
-  useEffect(() => {
-    const stored = localStorage.getItem('estoque-view') as 'board' | 'list' | null
-    if (stored === 'list') setViewMode('list')
-    // 'board' stored value no longer overrides the default
-  }, [])
+  const [viewMode, setViewMode] = useState<'board' | 'list'>(() => {
+    try {
+      const stored = localStorage.getItem('estoque-view') as 'board' | 'list' | null
+      return stored ?? 'list'
+    } catch { return 'list' }
+  })
   function switchView(v: 'board' | 'list') {
     setViewMode(v)
     localStorage.setItem('estoque-view', v)

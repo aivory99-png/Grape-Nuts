@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState } from 'react'
 import type { Lang } from '@/lib/i18n'
 
 const STORAGE_KEY = 'brand:logo'
@@ -8,13 +8,10 @@ const MAX_BYTES = 600_000 // ~600 KB after base64
 
 export default function LogoUpload({ lang }: { lang: Lang }) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const [preview, setPreview] = useState<string | null>(null)
+  const [preview, setPreview] = useState<string | null>(() => {
+    try { return localStorage.getItem(STORAGE_KEY) } catch { return null }
+  })
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) setPreview(stored)
-  }, [])
 
   function handleFile(file: File) {
     setError('')

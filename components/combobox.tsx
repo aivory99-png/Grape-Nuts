@@ -42,11 +42,15 @@ export default function Combobox({
 
   const displayLabel = options.find((o) => o.value === value)?.label ?? value
 
-  useEffect(() => { if (!open) { setQuery(''); setEditingValue(null) } }, [open])
+  function closeDropdown() {
+    setOpen(false)
+    setQuery('')
+    setEditingValue(null)
+  }
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      if (ref.current && !ref.current.contains(e.target as Node)) closeDropdown()
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -71,7 +75,7 @@ export default function Combobox({
       onChange(query.trim())
     }
     setCreating(false)
-    setOpen(false)
+    closeDropdown()
   }
 
   function commitEdit(optValue: string) {
@@ -99,7 +103,7 @@ export default function Combobox({
       {/* Trigger */}
       <div
         className={`${base} flex items-center justify-between cursor-pointer select-none`}
-        onClick={() => setOpen(!open)}
+        onClick={() => { if (open) closeDropdown(); else setOpen(true) }}
       >
         <span className={value ? 'text-app-text' : 'text-app-text3'}>
           {value ? displayLabel : placeholder}
@@ -185,7 +189,7 @@ export default function Combobox({
                   <>
                     <button
                       type="button"
-                      onClick={() => { onChange(o.value); setOpen(false) }}
+                      onClick={() => { onChange(o.value); closeDropdown() }}
                       className={`flex-1 text-left px-4 py-2.5 text-sm transition-colors min-w-0
                         ${value === o.value ? 'text-wine-600 font-semibold' : 'text-app-text'}`}
                     >

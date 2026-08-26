@@ -1149,6 +1149,15 @@ function BoardView({
   )
 }
 
+function SortIcon({ col, sortCol, sortDir }: { col: string; sortCol: string; sortDir: 'asc' | 'desc' }) {
+  const active = sortCol === col
+  return (
+    <span className={`inline-block ml-0.5 text-[9px] ${active ? 'text-wine-500' : 'text-app-border'}`}>
+      {active ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
+    </span>
+  )
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // List view
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1225,16 +1234,7 @@ function ListView({
     })
   }, [filtered, sortCol, sortDir])
 
-  function SortIcon({ col }: { col: string }) {
-    const active = sortCol === col
-    return (
-      <span className={`inline-block ml-0.5 text-[9px] ${active ? 'text-wine-500' : 'text-app-border'}`}>
-        {active ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
-      </span>
-    )
-  }
-
-  const th = 'text-[10px] font-bold uppercase tracking-wider text-app-text3 px-3 py-2.5 text-left whitespace-nowrap'
+  const th ='text-[10px] font-bold uppercase tracking-wider text-app-text3 px-3 py-2.5 text-left whitespace-nowrap'
   const thS = `${th} cursor-pointer select-none hover:text-app-text transition-colors`
   const td = 'px-3 py-2.5 text-xs text-app-text'
 
@@ -1282,23 +1282,23 @@ function ListView({
             </tr>
             {/* Column header row */}
             <tr>
-              <th className={thS} onClick={() => handleSort('name')}>{lang === 'pt' ? 'Vinho' : 'Vino'}<SortIcon col="name" /></th>
-              <th className={thS} onClick={() => handleSort('type')}>Tipo<SortIcon col="type" /></th>
-              <th className={thS} onClick={() => handleSort('producer')}>{lang === 'pt' ? 'Produtor' : 'Bodega'}<SortIcon col="producer" /></th>
-              <th className={thS} onClick={() => handleSort('country')}>País<SortIcon col="country" /></th>
+              <th className={thS} onClick={() => handleSort('name')}>{lang === 'pt' ? 'Vinho' : 'Vino'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="name" /></th>
+              <th className={thS} onClick={() => handleSort('type')}>Tipo<SortIcon sortCol={sortCol} sortDir={sortDir} col="type" /></th>
+              <th className={thS} onClick={() => handleSort('producer')}>{lang === 'pt' ? 'Produtor' : 'Bodega'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="producer" /></th>
+              <th className={thS} onClick={() => handleSort('country')}>País<SortIcon sortCol={sortCol} sortDir={sortDir} col="country" /></th>
               <th className={th}>Uva</th>
               <th className={th}>SKU</th>
               <th className={th}>{lang === 'pt' ? 'Loc.' : 'Ubic.'}</th>
-              <th className={thS + ' text-right'} onClick={() => handleSort('total')}>{lang === 'pt' ? 'Comprado' : 'Comprado'}<SortIcon col="total" /></th>
-              <th className={thS + ' text-right'} onClick={() => handleSort('disp')}>{lang === 'pt' ? 'Disponível' : 'Disponible'}<SortIcon col="disp" /></th>
+              <th className={thS + ' text-right'} onClick={() => handleSort('total')}>{lang === 'pt' ? 'Comprado' : 'Comprado'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="total" /></th>
+              <th className={thS + ' text-right'} onClick={() => handleSort('disp')}>{lang === 'pt' ? 'Disponível' : 'Disponible'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="disp" /></th>
               <th className={th + ' text-right'}>Min</th>
-              <th className={thS + ' text-right border-l border-app-border/50'} onClick={() => handleSort('pBotCompra')}>{lang === 'pt' ? 'Compra' : 'Compra'}<SortIcon col="pBotCompra" /></th>
-              <th className={thS + ' text-right'} onClick={() => handleSort('pBotVenta')}>{lang === 'pt' ? 'Venda' : 'Venta'}<SortIcon col="pBotVenta" /></th>
-              <th className={thS + ' text-right border-l border-app-border/50'} onClick={() => handleSort('pCjCompra')}>{lang === 'pt' ? 'Compra' : 'Compra'}<SortIcon col="pCjCompra" /></th>
-              <th className={thS + ' text-right'} onClick={() => handleSort('pCjVenta')}>{lang === 'pt' ? 'Venda' : 'Venta'}<SortIcon col="pCjVenta" /></th>
-              <th className={thS + ' text-right border-l border-app-border/50'} onClick={() => handleSort('vCompra')}>{lang === 'pt' ? 'Compra' : 'Compra'}<SortIcon col="vCompra" /></th>
-              <th className={thS + ' text-right'} onClick={() => handleSort('vVenta')}>{lang === 'pt' ? 'Venda' : 'Venta'}<SortIcon col="vVenta" /></th>
-              <th className={thS + ' text-right'} onClick={() => handleSort('margin')}>{lang === 'pt' ? 'Margem' : 'Margen'}<SortIcon col="margin" /></th>
+              <th className={thS + ' text-right border-l border-app-border/50'} onClick={() => handleSort('pBotCompra')}>{lang === 'pt' ? 'Compra' : 'Compra'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="pBotCompra" /></th>
+              <th className={thS + ' text-right'} onClick={() => handleSort('pBotVenta')}>{lang === 'pt' ? 'Venda' : 'Venta'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="pBotVenta" /></th>
+              <th className={thS + ' text-right border-l border-app-border/50'} onClick={() => handleSort('pCjCompra')}>{lang === 'pt' ? 'Compra' : 'Compra'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="pCjCompra" /></th>
+              <th className={thS + ' text-right'} onClick={() => handleSort('pCjVenta')}>{lang === 'pt' ? 'Venda' : 'Venta'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="pCjVenta" /></th>
+              <th className={thS + ' text-right border-l border-app-border/50'} onClick={() => handleSort('vCompra')}>{lang === 'pt' ? 'Compra' : 'Compra'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="vCompra" /></th>
+              <th className={thS + ' text-right'} onClick={() => handleSort('vVenta')}>{lang === 'pt' ? 'Venda' : 'Venta'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="vVenta" /></th>
+              <th className={thS + ' text-right'} onClick={() => handleSort('margin')}>{lang === 'pt' ? 'Margem' : 'Margen'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="margin" /></th>
               <th className={th}></th>
             </tr>
           </thead>

@@ -55,6 +55,15 @@ function termLabel(term: string | null, lang: Lang): string {
   return map[term]?.[lang] ?? term
 }
 
+function SortIcon({ col, sortCol, sortDir }: { col: string; sortCol: string | null; sortDir: 'asc' | 'desc' }) {
+  const active = sortCol === col
+  return (
+    <span className={`inline-block ml-0.5 text-[9px] ${active ? 'text-wine-500' : 'text-app-border'}`}>
+      {active ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
+    </span>
+  )
+}
+
 function fmtCurr(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n)
 }
@@ -241,15 +250,7 @@ export default function OrdersTable({ rows: initialRows, lang }: { rows: OrderRo
   const thSort = `${th} cursor-pointer select-none hover:text-app-text transition-colors`
   const thSortWrap = `${thWrap} cursor-pointer select-none hover:text-app-text transition-colors`
 
-  function SortIcon({ col }: { col: string }) {
-    const active = sortCol === col
-    return (
-      <span className={`inline-block ml-0.5 text-[9px] ${active ? 'text-wine-500' : 'text-app-border'}`}>
-        {active ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
-      </span>
-    )
-  }
-  const td = 'px-3 py-3 text-xs text-app-text align-top'
+  const td ='px-3 py-3 text-xs text-app-text align-top'
   const editInp = 'w-full bg-wine-50 border border-wine-300 rounded px-1.5 py-0.5 text-xs text-app-text focus:outline-none focus:ring-1 focus:ring-wine-500'
   const sel = 'px-2.5 py-1.5 rounded-lg border border-app-border bg-app-bg text-app-text text-xs focus:outline-none focus:ring-2 focus:ring-wine-500'
 
@@ -342,27 +343,27 @@ export default function OrdersTable({ rows: initialRows, lang }: { rows: OrderRo
         <table className="min-w-full border-collapse" style={{ minWidth: 1200 }}>
           <thead>
             <tr className="border-b border-app-border bg-app-bg/50">
-              <th className={thSort} style={{ width: 110 }} onClick={() => handleSortClick('status')}>Status<SortIcon col="status" /></th>
-              <th className={thSort} style={{ width: 140 }} onClick={() => handleSortClick('clientName')}>Cliente<SortIcon col="clientName" /></th>
-              <th className={thSort} style={{ width: 100 }} onClick={() => handleSortClick('clientType')}>Tipo cliente<SortIcon col="clientType" /></th>
-              <th className={thSort} style={{ width: 100 }} onClick={() => handleSortClick('sellerName')}>Vendedor<SortIcon col="sellerName" /></th>
+              <th className={thSort} style={{ width: 110 }} onClick={() => handleSortClick('status')}>Status<SortIcon sortCol={sortCol} sortDir={sortDir} col="status" /></th>
+              <th className={thSort} style={{ width: 140 }} onClick={() => handleSortClick('clientName')}>Cliente<SortIcon sortCol={sortCol} sortDir={sortDir} col="clientName" /></th>
+              <th className={thSort} style={{ width: 100 }} onClick={() => handleSortClick('clientType')}>Tipo cliente<SortIcon sortCol={sortCol} sortDir={sortDir} col="clientType" /></th>
+              <th className={thSort} style={{ width: 100 }} onClick={() => handleSortClick('sellerName')}>Vendedor<SortIcon sortCol={sortCol} sortDir={sortDir} col="sellerName" /></th>
               <th className={th} style={{ width: 180 }}>{lang === 'pt' ? 'Produto(s)' : 'Producto(s)'}</th>
               <th className={thSortWrap} style={{ width: 80 }} onClick={() => handleSortClick('orderDate')}>
-                Pedido<br/>confirmado<SortIcon col="orderDate" />
+                Pedido<br/>confirmado<SortIcon sortCol={sortCol} sortDir={sortDir} col="orderDate" />
               </th>
               <th className={thSort} style={{ width: 140 }} onClick={() => handleSortClick('paymentType')}>
-                {lang === 'pt' ? 'Método / Prazo' : 'Método / Plazo'}<SortIcon col="paymentType" />
+                {lang === 'pt' ? 'Método / Prazo' : 'Método / Plazo'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="paymentType" />
               </th>
               <th className={thSort} style={{ width: 110 }}>
                 {lang === 'pt' ? 'Categoria' : 'Categoría'}
               </th>
               <th className={thSortWrap} style={{ width: 80 }} onClick={() => handleSortClick('dueDate')}>
-                {lang === 'pt' ? 'Vencimento' : 'Vencimiento'}<br/>{lang === 'pt' ? 'fatura' : 'factura'}<SortIcon col="dueDate" />
+                {lang === 'pt' ? 'Vencimento' : 'Vencimiento'}<br/>{lang === 'pt' ? 'fatura' : 'factura'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="dueDate" />
               </th>
-              <th className={thSort} style={{ width: 80 }} onClick={() => handleSortClick('paidDate')}>{lang === 'pt' ? 'Pago em' : 'Pago el'}<SortIcon col="paidDate" /></th>
-              <th className={`${thSort} text-right`} style={{ width: 100 }} onClick={() => handleSortClick('costValue')}>{lang === 'pt' ? 'Custo' : 'Costo'}<SortIcon col="costValue" /></th>
-              <th className={`${thSort} text-right`} style={{ width: 110 }} onClick={() => handleSortClick('chargedValue')}>Val. Cobrado<SortIcon col="chargedValue" /></th>
-              <th className={`${thSort} text-right`} style={{ width: 100 }} onClick={() => handleSortClick('lucro')}>Lucro<SortIcon col="lucro" /></th>
+              <th className={thSort} style={{ width: 80 }} onClick={() => handleSortClick('paidDate')}>{lang === 'pt' ? 'Pago em' : 'Pago el'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="paidDate" /></th>
+              <th className={`${thSort} text-right`} style={{ width: 100 }} onClick={() => handleSortClick('costValue')}>{lang === 'pt' ? 'Custo' : 'Costo'}<SortIcon sortCol={sortCol} sortDir={sortDir} col="costValue" /></th>
+              <th className={`${thSort} text-right`} style={{ width: 110 }} onClick={() => handleSortClick('chargedValue')}>Val. Cobrado<SortIcon sortCol={sortCol} sortDir={sortDir} col="chargedValue" /></th>
+              <th className={`${thSort} text-right`} style={{ width: 100 }} onClick={() => handleSortClick('lucro')}>Lucro<SortIcon sortCol={sortCol} sortDir={sortDir} col="lucro" /></th>
               <th className={th} style={{ width: 60 }}></th>
             </tr>
           </thead>

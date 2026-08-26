@@ -44,7 +44,7 @@ export default function UpdatePasswordPage() {
           else setReady(true)
         })
       } else {
-        setInitError('Enlace inválido o expirado.')
+        Promise.resolve().then(() => setInitError('Enlace inválido o expirado.'))
       }
     } else {
       // User might already have a session (navigated here directly)

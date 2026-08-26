@@ -51,16 +51,16 @@ export default function NavShell({
   const pathname     = usePathname()
   const [gsOpen,        setGsOpen]        = useState(false)
   const [userMenuOpen,  setUserMenuOpen]  = useState(false)
-  const [welcomeSeen,   setWelcomeSeen]   = useState(true)
+  const [welcomeSeen, setWelcomeSeen] = useState<boolean>(() => {
+    try {
+      const key = `gn_welcome_v1_${user?.id ?? 'anon'}`
+      return !!localStorage.getItem(key)
+    } catch { return true }
+  })
 
   const openTourRef  = useRef<() => void>(() => {})
   const userMenuRef  = useRef<HTMLDivElement>(null)
   const registerOpen = useCallback((fn: () => void) => { openTourRef.current = fn }, [])
-
-  useEffect(() => {
-    const key = `gn_welcome_v1_${user?.id ?? 'anon'}`
-    setWelcomeSeen(!!localStorage.getItem(key))
-  }, [user?.id])
 
   /* close user menu on outside click */
   useEffect(() => {

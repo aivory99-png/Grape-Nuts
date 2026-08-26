@@ -101,8 +101,8 @@ export default function WelcomeModal({
           {/* Personal message */}
           <p className="text-sm leading-relaxed text-app-text">
             Sabemos que mudar do Excel pode parecer um salto grande —
-            mas a equipa <span className="font-semibold text-app-text">DeTech</span> preparou
-            tudo com cuidado para que se sinta em casa desde o primeiro clique.
+            mas a equipe da <span className="font-semibold text-app-text">DeTech</span> preparou
+            tudo com cuidado para que você se sinta em casa desde o primeiro clique.
           </p>
 
           {/* Data ready callout */}
@@ -176,7 +176,7 @@ export default function WelcomeModal({
         {/* ── Footer ── */}
         <div className="px-7 pb-6 text-center">
           <p className="text-[11px] text-app-text3 leading-relaxed">
-            Feito com cuidado pela equipa{' '}
+            Feito com cuidado pelo time da{' '}
             <span className="font-semibold text-app-text2">DeTech</span>
             {' '}para o <span className="font-medium text-app-text2">Grape&Nuts</span>
           </p>

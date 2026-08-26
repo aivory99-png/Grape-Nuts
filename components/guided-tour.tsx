@@ -72,9 +72,9 @@ const SPOTLIGHT_STEPS: StepConfig[] = [
     subtitle: 'O seu negócio de relance',
     title: 'Painel Finanças',
     body: ({ firstName }) =>
-      `${firstName}, aqui você vê tudo o que importa sem abrir o Excel — receita do mês, pedidos em aberto, cobranças vencidas e pagamentos recebidos, tudo a tempo real.`,
+      `${firstName}, aqui você vê tudo o que importa sem abrir o Excel — receita do mês, pedidos em aberto, cobranças vencidas e pagamentos recebidos, tudo em tempo real.`,
     tips: () => [
-      'Os números atualizam automaticamente a cada pedido registado',
+      'Os números atualizam automaticamente a cada pedido registrado',
       'Use os filtros rápidos: Este mês / Próximo mês / Este ano',
       'Clique em qualquer cartão para explorar o detalhe',
     ],
@@ -91,7 +91,7 @@ const SPOTLIGHT_STEPS: StepConfig[] = [
       'O gráfico de barras resume a sua receita mês a mês. Clique numa barra e todos os pedidos daquele mês aparecem instantaneamente abaixo — filtragem com um clique.',
     tips: () => [
       'Clique numa barra para filtrar por aquele mês',
-      'A tabela de pedidos abaixo atualiza-se instantaneamente',
+      'A tabela de pedidos abaixo atualiza instantaneamente',
       'Filtre por cliente ou vinho para análises mais detalhadas',
     ],
   },
@@ -106,9 +106,9 @@ const SPOTLIGHT_STEPS: StepConfig[] = [
     body: () =>
       'Todos os seus pedidos num só lugar — sem tabelas separadas. Expanda qualquer linha para registar o envio com código de rastreio e marcar pagamentos como recebidos.',
     tips: () => [
-      'Expanda o pedido → aba Envio para registar o rastreio',
+      'Expanda o pedido → aba Envio para registrar o rastreio',
       'Aba Cobrança → marque cada pagamento como Pago com a data',
-      'O status (Enviado / Pago) atualiza-se automaticamente',
+      'O status (Enviado / Pago) atualiza automaticamente',
     ],
   },
   {
@@ -121,8 +121,8 @@ const SPOTLIGHT_STEPS: StepConfig[] = [
     title: 'Estoque',
     body: ({ wineCount }) =>
       wineCount > 0
-        ? `Os seus ${wineCount} vinhos já estão carregados e prontos a usar! Quando receber nova mercadoria, "+ Novo Produto" regista a entrada com preço de compra e quantidade.`
-        : 'Os seus vinhos estão aqui, prontos a usar! Quando receber nova mercadoria, "+ Novo Produto" regista a entrada com preço de compra e quantidade.',
+        ? `Os seus ${wineCount} vinhos já estão carregados e prontos para usar! Quando receber nova mercadoria, "+ Novo Produto" registra a entrada com preço de compra e quantidade.`
+        : 'Os seus vinhos estão aqui, prontos para usar! Quando receber nova mercadoria, "+ Novo Produto" registra a entrada com preço de compra e quantidade.',
     tips: () => [
       'O estoque desconta automaticamente em cada pedido confirmado',
       '"Repor" adiciona unidades a um vinho já existente',
@@ -139,8 +139,8 @@ const SPOTLIGHT_STEPS: StepConfig[] = [
     title: 'Clientes',
     body: ({ clientCount }) =>
       clientCount > 0
-        ? `Os seus ${clientCount} clientes e prospects já estão aqui. Clique em qualquer um para ver o histórico completo de pedidos, volume comprado e contacto.`
-        : 'Todos os seus clientes e prospects num só lugar. Clique em qualquer um para ver o histórico completo de pedidos, volume e contacto.',
+        ? `Os seus ${clientCount} clientes e prospects já estão aqui. Clique em qualquer um para ver o histórico completo de pedidos, volume comprado e contato.`
+        : 'Todos os seus clientes e prospects num só lugar. Clique em qualquer um para ver o histórico completo de pedidos, volume e contato.',
     tips: () => [
       'Clique num cliente para ver a ficha e o histórico de pedidos',
       'Use o pódio no topo para identificar os clientes mais valiosos',
@@ -153,14 +153,14 @@ const SPOTLIGHT_STEPS: StepConfig[] = [
     icon: 'cart',
     gradient: 'from-orange-800 to-orange-700',
     iconBg: 'bg-orange-500/20', dot: 'bg-orange-400',
-    subtitle: 'Registar pedido recebido do cliente',
+    subtitle: 'Registrar pedido recebido do cliente',
     title: 'Novo Pedido',
     body: ({ firstName }) =>
-      `${firstName}, registar um pedido leva menos de 1 minuto: selecione o cliente, escolha os vinhos — o preço preenche-se automaticamente. Mais rápido que qualquer Excel!`,
+      `${firstName}, registrar um pedido leva menos de 1 minuto: selecione o cliente, escolha os vinhos — o preço preenche automaticamente. Mais rápido que qualquer Excel!`,
     tips: () => [
-      'A data do pedido é editável — registe também vendas passadas',
+      'A data do pedido é editável — registre também vendas passadas',
       'O tipo "Prospect (brinde)" não gera cobrança pendente',
-      'Pode adicionar vários vinhos no mesmo pedido',
+      'Você pode adicionar vários vinhos no mesmo pedido',
     ],
   },
   {
@@ -172,11 +172,11 @@ const SPOTLIGHT_STEPS: StepConfig[] = [
     subtitle: 'Conta e preferências',
     title: 'Configurações',
     body: () =>
-      'Atualize o seu perfil e preferências. Se no futuro tiver uma equipa de vendas, basta adicionar vendedores aqui — eles recebem acesso imediato com o próprio e-mail.',
+      'Atualize o seu perfil e preferências. Se no futuro tiver uma equipe de vendas, basta adicionar vendedores aqui — eles recebem acesso imediato com o próprio e-mail.',
     tips: () => [
       'Os vendedores recebem acesso com e-mail e senha próprios',
       'Mude o idioma (PT/ES) em qualquer momento no menu lateral',
-      'A equipa DeTech está sempre disponível para ajudar',
+      'A equipe da DeTech está sempre disponível para ajudar',
     ],
   },
 ]
@@ -366,7 +366,7 @@ export default function GuidedTour({
                   style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
                 >
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-[11px] font-semibold text-white/70 tracking-wide">TUDO A FUNCIONAR</span>
+                  <span className="text-[11px] font-semibold text-white/70 tracking-wide">TUDO FUNCIONANDO</span>
                 </div>
                 <h2 className="text-white text-2xl font-bold leading-tight mb-1">
                   {firstName}, a sua plataforma<br />está pronta! 🎉
@@ -383,15 +383,15 @@ export default function GuidedTour({
               {/* Message */}
               <p className="text-sm leading-relaxed text-app-text">
                 Sabemos que vir do Excel pode parecer avassalador —
-                mas não se preocupe. A equipa <span className="font-semibold text-app-text">DeTech</span> configurou
-                e implementou tudo com cuidado, exatamente como pediu.
+                mas não se preocupe. A equipe da <span className="font-semibold text-app-text">DeTech</span> configurou
+                e implementou tudo com cuidado, exatamente como você pediu.
               </p>
 
               {/* Data pills */}
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { emoji: '🍷', label: wineCount > 0 ? `${wineCount} vinhos` : 'Vinhos', sub: 'carregados e prontos' },
-                  { emoji: '🤝', label: clientCount > 0 ? `${clientCount} clientes` : 'Clientes', sub: 'registados e ativos' },
+                  { emoji: '🤝', label: clientCount > 0 ? `${clientCount} clientes` : 'Clientes', sub: 'registrados e ativos' },
                   { emoji: '📦', label: 'Estoque',   sub: 'configurado e ativo' },
                   { emoji: '💸', label: 'Cobranças', sub: 'integradas nos pedidos' },
                 ].map((item, i) => (
@@ -415,8 +415,8 @@ export default function GuidedTour({
               >
                 <span className="text-lg flex-shrink-0 mt-0.5">💬</span>
                 <p className="text-[13px] text-app-text2 leading-relaxed">
-                  A equipa <span className="font-semibold text-app-text">DeTech</span> está
-                  aqui para implementar o que precisar e responder a qualquer questão.
+                  A equipe da <span className="font-semibold text-app-text">DeTech</span> está
+                  aqui para implementar o que você precisar e responder a qualquer dúvida.
                   Este tour mostra cada parte da plataforma em menos de 3 minutos.
                 </p>
               </div>
@@ -443,7 +443,7 @@ export default function GuidedTour({
             {/* Footer */}
             <div className="px-8 pb-5 text-center">
               <p className="text-[11px] text-app-text3">
-                Feito com cuidado pela equipa{' '}
+                Feito com cuidado pelo time da{' '}
                 <span className="font-semibold text-app-text2">DeTech</span>
                 {' '}para o <span className="font-medium text-app-text2">Grape&Nuts</span>
               </p>

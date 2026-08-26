@@ -3,7 +3,7 @@
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/lib/supabase/admin'
 import type { Lang } from '@/lib/i18n'
 
 export async function setLangAction(lang: Lang) {
@@ -16,10 +16,7 @@ export async function setLangAction(lang: Lang) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const admin = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      )
+      const admin = getAdminClient()
       await admin.from('user_profiles').update({ lang }).eq('id', user.id)
     }
   } catch {

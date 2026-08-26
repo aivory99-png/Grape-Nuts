@@ -40,7 +40,7 @@ export async function updateClient(id: string, data: {
   }).eq('id', id).eq('organization_id', orgId)
 
   if (error) {
-    console.error(error)
+    console.error('[clientes/id] update:', error?.code)
     return { error: 'Erro ao atualizar cliente.' }
   }
 

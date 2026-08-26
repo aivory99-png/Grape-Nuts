@@ -1,15 +1,10 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
-function adminClient() {
-  return createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
-}
+const adminClient = getAdminClient
 
 async function getUserAndOrg(): Promise<{ userId: string; orgId: string } | null> {
   const supabase = await createClient()
@@ -29,7 +24,7 @@ export async function createWinery(name: string): Promise<{ id: string; name: st
   if (!ctx) { console.error('createWinery: no orgId'); return null }
   const admin = adminClient()
   const { data, error } = await admin.from('wineries').insert({ name, organization_id: ctx.orgId }).select('id, name').single()
-  if (error) { console.error('createWinery error:', error); return null }
+  if (error) { console.error('[estoque/novo] createWinery:', error?.code); return null }
   return data
 }
 
@@ -101,7 +96,7 @@ export async function addStockEntry(data: {
 
   const { data: wine, error: wineErr } = await admin.from('wines').insert(wineInsert).select('id').single()
   if (wineErr || !wine) {
-    console.error(wineErr)
+    console.error('[estoque/novo] wine insert:', wineErr?.code)
     return { error: 'Erro ao criar vinho.' }
   }
 
@@ -120,7 +115,7 @@ export async function addStockEntry(data: {
   })
 
   if (stockErr) {
-    console.error(stockErr)
+    console.error('[estoque/novo] stock insert:', stockErr?.code)
     await admin.from('wines').delete().eq('id', wine.id)
     return { error: 'Erro ao criar entrada de estoque.' }
   }
@@ -191,7 +186,7 @@ export async function updateFullEntry(
 
   // Run both updates in parallel
   const [wineResult, entryResult] = await Promise.all([
-    admin.from('wines').update(wineUpdate).eq('id', wineId),
+    admin.from('wines').update(wineUpdate).eq('id', entryOwnerCheck.wine_id),
     admin.from('stock_entries').update({
       ...(newQtyPurchased !== undefined ? { qty_purchased: newQtyPurchased } : {}),
       qty_remaining:    newQty,
@@ -203,8 +198,8 @@ export async function updateFullEntry(
     }).eq('id', entryId),
   ])
 
-  if (wineResult.error) { console.error('updateFullEntry wine error:', wineResult.error); return { error: 'Erro ao atualizar vinho.' } }
-  if (entryResult.error) { console.error('updateFullEntry entry error:', entryResult.error); return { error: 'Erro ao atualizar entrada.' } }
+  if (wineResult.error) { console.error('[estoque/novo] updateFullEntry wine:', wineResult.error?.code); return { error: 'Erro ao atualizar vinho.' } }
+  if (entryResult.error) { console.error('[estoque/novo] updateFullEntry entry:', entryResult.error?.code); return { error: 'Erro ao atualizar entrada.' } }
 
   revalidatePath('/dashboard/estoque', 'page')
   revalidatePath('/dashboard/estoque', 'layout')

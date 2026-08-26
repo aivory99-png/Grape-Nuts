@@ -55,7 +55,7 @@ export async function register(_state: unknown, formData: FormData) {
   const confirm = formData.get('confirm') as string
 
   if (!email || !password) return { error: 'Completa todos los campos.' }
-  if (password.length < 8) return { error: 'La contraseña debe tener al menos 6 caracteres.' }
+  if (password.length < 8) return { error: 'La contraseña debe tener al menos 8 caracteres.' }
   if (password !== confirm) return { error: 'Las contraseñas no coinciden.' }
 
   const supabase = await makeClient()
@@ -84,7 +84,7 @@ export async function updatePassword(_state: unknown, formData: FormData) {
   const confirm = formData.get('confirm') as string
 
   if (!password) return { error: 'Ingresa una nueva contraseña.' }
-  if (password.length < 8) return { error: 'La contraseña debe tener al menos 6 caracteres.' }
+  if (password.length < 8) return { error: 'La contraseña debe tener al menos 8 caracteres.' }
   if (password !== confirm) return { error: 'Las contraseñas no coinciden.' }
 
   const supabase = await makeClient()

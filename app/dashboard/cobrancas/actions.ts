@@ -90,11 +90,14 @@ export async function updateOrderValues(
   revalidatePath('/dashboard/cobrancas')
 }
 
+const VALID_ORDER_STATUSES = new Set(['open', 'shipped', 'paid', 'cancelled'])
+
 export async function updateOrderStatus(
   orderId: string,
   status: string,
   paymentId: string | null,
 ): Promise<void> {
+  if (!VALID_ORDER_STATUSES.has(status)) return
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return

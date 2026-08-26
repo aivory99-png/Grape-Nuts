@@ -1,16 +1,11 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { getOrgId } from '@/lib/get-org-id'
 
-function adminClient() {
-  return createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
-}
+const adminClient = getAdminClient
 
 export async function updateProfile(data: {
   name: string
@@ -31,7 +26,7 @@ export async function updateProfile(data: {
     .eq('id', user.id)
 
   if (error) {
-    console.error(error)
+    console.error('[configuracoes] profile update:', error?.code)
     return { error: 'Erro ao atualizar perfil.' }
   }
 
@@ -69,11 +64,11 @@ export async function updateSeller(
   ])
 
   if (profileRes.error) {
-    console.error(profileRes.error)
+    console.error('[configuracoes] seller profile update:', profileRes.error?.code)
     return { error: 'Erro ao atualizar vendedor.' }
   }
   if (metaRes.error) {
-    console.error(metaRes.error)
+    console.error('[configuracoes] seller meta update:', metaRes.error?.code)
   }
 
   revalidatePath('/dashboard/configuracoes')
@@ -104,7 +99,7 @@ export async function deleteSeller(sellerId: string): Promise<{ success?: boolea
     .eq('id', sellerId)
 
   if (error) {
-    console.error(error)
+    console.error('[configuracoes] seller deactivate:', error?.code)
     return { error: 'Erro ao desativar vendedor.' }
   }
 

@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -13,14 +13,11 @@ export async function setupAdmin(_state: unknown, formData: FormData) {
   if (!name || !email || !password) {
     return { error: 'Completa todos los campos.' }
   }
-  if (password.length < 6) {
-    return { error: 'La contraseña necesita al menos 6 caracteres.' }
+  if (password.length < 8) {
+    return { error: 'La contraseña necesita al menos 8 caracteres.' }
   }
 
-  const admin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
+  const admin = getAdminClient()
 
   // Atomically claim the setup slot — PK unique constraint prevents double-setup (CN-013)
   const { error: claimError } = await admin

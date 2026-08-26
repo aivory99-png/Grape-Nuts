@@ -113,7 +113,7 @@ export default function StockForm({
 
     const supabase = createClient()
     const ext = file.name.split('.').pop() ?? 'jpg'
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+    const path = `${crypto.randomUUID()}.${ext}`
     const { data, error } = await supabase.storage.from('wine-images').upload(path, file, {
       cacheControl: '3600',
       upsert: false,

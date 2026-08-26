@@ -1,7 +1,7 @@
 'use server'
 
 import { createServerClient } from '@supabase/ssr'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
@@ -18,10 +18,7 @@ export async function register(_state: unknown, formData: FormData) {
     return { error: 'A senha precisa ter ao menos 8 caracteres.' }
   }
 
-  const admin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
+  const admin = getAdminClient()
 
   const { data: created, error: createError } = await admin.auth.admin.createUser({
     email,

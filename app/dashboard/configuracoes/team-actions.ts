@@ -1,15 +1,10 @@
 'use server'
 
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-function getAdmin() {
-  return createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
-}
+const getAdmin = getAdminClient
 
 export async function inviteTeamMember(data: {
   name: string
@@ -43,7 +38,7 @@ export async function inviteTeamMember(data: {
     if (inviteError.message.includes('already')) {
       return { error: 'Este email ya está registrado.' }
     }
-    console.error(inviteError)
+    console.error('[team] invite:', inviteError?.code)
     return { error: 'Erro ao convidar membro.' }
   }
 
@@ -90,7 +85,7 @@ export async function updateMemberPermissions(data: {
     permissions: data.permissions,
   }).eq('id', data.userId)
 
-  if (error) { console.error(error); return { error: 'Erro ao atualizar permissões.' } }
+  if (error) { console.error('[team] permissions update:', error?.code); return { error: 'Erro ao atualizar permissões.' } }
   revalidatePath('/dashboard/configuracoes')
   return { success: true }
 }

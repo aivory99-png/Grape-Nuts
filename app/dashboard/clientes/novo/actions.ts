@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { getOrgId } from '@/lib/get-org-id'
 
@@ -36,7 +36,7 @@ export async function createClient_(data: {
   })
 
   if (error) {
-    console.error(error)
+    console.error('[clientes/novo] insert:', error?.code)
     return { error: 'Erro ao salvar cliente.' }
   }
 
@@ -53,10 +53,7 @@ export async function addClientType(label: string): Promise<{ value?: string; la
     .from('user_profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return { error: 'Acesso negado.' }
 
-  const admin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
+  const admin = getAdminClient()
 
   const slug = label.trim().toLowerCase()
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -67,7 +64,7 @@ export async function addClientType(label: string): Promise<{ value?: string; la
   if (!slug) return { error: 'Nome inválido.' }
 
   const { error } = await admin.rpc('add_client_type_value', { new_value: slug })
-  if (error) { console.error(error); return { error: 'Erro ao criar tipo.' } }
+  if (error) { console.error('[clientes/novo] add_client_type:', error?.code); return { error: 'Erro ao criar tipo.' } }
 
   return { value: slug, label: label.trim() }
 }
@@ -83,13 +80,10 @@ export async function createSeller(
   const orgId = await getOrgId()
   if (!orgId) return { error: 'Organização não encontrada.' }
 
-  const admin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
+  const admin = getAdminClient()
 
   // Auto-generate a unique internal email (sellers don't need login access)
-  const fakeEmail = `seller_${Date.now()}_${Math.random().toString(36).slice(2, 8)}@noreply.internal`
+  const fakeEmail = `seller_${Date.now()}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}@noreply.internal`
 
   const { data: authData, error: authError } = await admin.auth.admin.createUser({
     email: fakeEmail,
@@ -98,11 +92,11 @@ export async function createSeller(
   })
 
   if (authError) {
-    console.error('auth createUser error:', authError)
+    console.error('[clientes/novo] auth createUser:', authError?.code)
     if (authError.message?.toLowerCase().includes('already')) {
       return { error: 'Este email ya está registrado.' }
     }
-    return { error: authError.message ?? 'Error al crear usuario.' }
+    return { error: 'Error al crear usuario.' }
   }
 
   const newId = authData.user.id
@@ -116,7 +110,7 @@ export async function createSeller(
   }, { onConflict: 'id' })
 
   if (profileError) {
-    console.error('profile upsert error:', profileError)
+    console.error('[clientes/novo] profile upsert:', profileError?.code)
     // Auth user was created, still return the id so the seller is selectable
   }
 

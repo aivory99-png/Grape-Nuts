@@ -1,16 +1,11 @@
 'use server'
 
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { getOrgId } from '@/lib/get-org-id'
 
-function admin() {
-  return createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
-}
+const admin = getAdminClient
 
 export async function updateStockEntry(
   id: string,
@@ -48,7 +43,7 @@ export async function updateStockEntry(
     })
     .eq('id', id)
 
-  if (error) { console.error(error); return { error: 'Erro ao atualizar entrada.' } }
+  if (error) { console.error('[estoque] update entry:', error?.code); return { error: 'Erro ao atualizar entrada.' } }
 
   if (data.wineId !== undefined) {
     await admin()
@@ -104,7 +99,7 @@ export async function addRestockEntry(
         qty_remaining: existing.qty_remaining + data.qty,
       })
       .eq('id', existingEntryId)
-    if (error) { console.error(error); return { error: 'Erro ao atualizar entrada.' } }
+    if (error) { console.error('[estoque] restock update:', error?.code); return { error: 'Erro ao atualizar entrada.' } }
     revalidatePath('/dashboard/estoque')
     return { success: true }
   }
@@ -121,7 +116,7 @@ export async function addRestockEntry(
     purchase_date:    data.purchase_date,
   })
 
-  if (error) { console.error(error); return { error: 'Erro ao criar entrada.' } }
+  if (error) { console.error('[estoque] insert entry:', error?.code); return { error: 'Erro ao criar entrada.' } }
   revalidatePath('/dashboard/estoque')
   return { success: true }
 }
@@ -175,7 +170,7 @@ export async function deleteStockEntry(
   await admin().from('order_items').delete().eq('stock_entry_id', id)
 
   const { error } = await admin().from('stock_entries').delete().eq('id', id)
-  if (error) { console.error('deleteStockEntry error:', error); return { error: 'Erro ao excluir entrada.' } }
+  if (error) { console.error('[estoque] delete entry:', error?.code); return { error: 'Erro ao excluir entrada.' } }
 
   // If no other stock entries reference this wine, delete the wine too
   if (entry?.wine_id) {

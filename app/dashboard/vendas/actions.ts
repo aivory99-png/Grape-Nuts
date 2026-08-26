@@ -77,7 +77,7 @@ export async function createOrder(data: {
       .single()
 
     if (orderError || !order) {
-      console.error('orders insert error:', orderError)
+      console.error('[vendas] order insert:', orderError?.code)
       return { error: 'Erro ao criar pedido.' }
     }
 
@@ -94,7 +94,7 @@ export async function createOrder(data: {
     )
 
     if (itemsError) {
-      console.error('order_items insert error:', itemsError)
+      console.error('[vendas] order_items insert:', itemsError?.code)
       return { error: 'Erro ao salvar itens.' }
     }
 
@@ -106,7 +106,7 @@ export async function createOrder(data: {
           .from('stock_entries')
           .update({ qty_remaining: Math.max(0, entry.qty_remaining - item.qtyBottles) })
           .eq('id', entry.id)
-        if (stockErr) console.error('stock decrement error:', stockErr)
+        if (stockErr) console.error('[vendas] stock decrement:', stockErr?.code)
       }
     }
 
@@ -122,7 +122,7 @@ export async function createOrder(data: {
         due_date: dueDate.toISOString().split('T')[0],
         status:   'pending',
       })
-      if (payErr) console.error('payments insert error:', payErr)
+      if (payErr) console.error('[vendas] payments insert:', payErr?.code)
     }
 
     // Delivery record — only if carrier provided
@@ -133,14 +133,14 @@ export async function createOrder(data: {
         price:        0,
         paid:         false,
       })
-      if (deliveryErr) console.error('deliveries insert error:', deliveryErr)
+      if (deliveryErr) console.error('[vendas] deliveries insert:', deliveryErr?.code)
     }
 
     revalidatePath('/dashboard/vendas')
     revalidatePath('/dashboard')
     return { success: true, orderId: order.id }
   } catch (err) {
-    console.error('createOrder unexpected error:', err)
+    console.error('[vendas] createOrder:', err instanceof Error ? err.message : String(err))
     return { error: 'Erro inesperado ao processar pedido.' }
   }
 }
@@ -164,6 +164,12 @@ export async function updateOrder(data: {
 
     const orgId = await getOrgId()
     if (!orgId) return { error: 'Organização não encontrada.' }
+
+    // Pre-check ownership before any mutation (CN-003 TOCTOU fix)
+    const { data: orderCheck } = await supabase
+      .from('orders').select('id')
+      .eq('id', data.orderId).eq('organization_id', orgId).single()
+    if (!orderCheck) return { error: 'Pedido não encontrado ou acesso negado.' }
 
     // 1. Fetch current items to restore stock
     const { data: currentItems } = await supabase
@@ -270,7 +276,7 @@ export async function updateOrder(data: {
     revalidatePath('/dashboard/vendas')
     return { success: true }
   } catch (err) {
-    console.error('updateOrder unexpected error:', err)
+    console.error('[vendas] updateOrder:', err instanceof Error ? err.message : String(err))
     return { error: 'Erro inesperado ao atualizar pedido.' }
   }
 }
@@ -285,6 +291,12 @@ export async function deleteOrder(
 
     const orgId = await getOrgId()
     if (!orgId) return { error: 'Organização não encontrada.' }
+
+    // Pre-check ownership before any mutation (CN-004 TOCTOU fix)
+    const { data: deleteOrderCheck } = await supabase
+      .from('orders').select('id')
+      .eq('id', orderId).eq('organization_id', orgId).single()
+    if (!deleteOrderCheck) return { error: 'Pedido não encontrado ou acesso negado.' }
 
     // 1. Fetch current items to restore stock
     const { data: currentItems } = await supabase
@@ -323,7 +335,7 @@ export async function deleteOrder(
     revalidatePath('/dashboard/vendas')
     return { success: true }
   } catch (err) {
-    console.error('deleteOrder unexpected error:', err)
+    console.error('[vendas] deleteOrder:', err instanceof Error ? err.message : String(err))
     return { error: 'Erro inesperado ao eliminar pedido.' }
   }
 }

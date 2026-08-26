@@ -201,6 +201,7 @@ export default function DashboardView({
       </div>
 
       {/* Chart */}
+      <div data-tour="revenue-chart">
       <RevenueChart
         months={months}
         wines={chartDisplayWines}
@@ -213,6 +214,7 @@ export default function DashboardView({
         allTotals={effectiveTotals}
         onBarClick={handleBarClick}
       />
+      </div>
 
       {/* Orders count indicator */}
       {(hasSelection || hasChartFilter) && (
@@ -222,7 +224,7 @@ export default function DashboardView({
       )}
 
       {/* Orders table */}
-      <div className="mt-4">
+      <div data-tour="orders-table" className="mt-4">
         {filteredOrders.length === 0 ? (
           <div className="bg-app-card rounded-2xl border border-app-border p-8 text-center text-app-text3 text-sm">
             {lang === 'pt' ? 'Nenhum pedido no período selecionado.' : 'Sin pedidos en el período seleccionado.'}

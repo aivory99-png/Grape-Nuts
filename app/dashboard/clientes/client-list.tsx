@@ -384,7 +384,7 @@ export default function ClientList({ clients, lang }: { clients: ClientRow[]; la
               : <>{lang === 'pt' ? 'Nenhum cliente ainda. ' : 'Sin clientes aún. '}<Link href="/dashboard/clientes/novo" className="text-wine-600 hover:underline">{lang === 'pt' ? '+ Novo Cliente' : '+ Nuevo Cliente'}</Link></>}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-app-border overflow-hidden">
+          <div data-tour="client-list" className="bg-white rounded-2xl border border-app-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>

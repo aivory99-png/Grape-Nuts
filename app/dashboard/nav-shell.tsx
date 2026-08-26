@@ -7,7 +7,7 @@ import { logout } from '@/app/login/actions'
 import LangToggle from '@/components/lang-toggle'
 import ThemeToggle from '@/components/theme-toggle'
 import GrapesNutsLogo from '@/components/logo'
-import OnboardingTour from '@/components/onboarding-tour'
+import GuidedTour from '@/components/guided-tour'
 import GettingStartedPanel from '@/components/getting-started-panel'
 import WelcomeModal from '@/components/welcome-modal'
 import type { UserProfile } from '@/lib/types'
@@ -81,7 +81,7 @@ export default function NavShell({
 
   return (
     <>
-    <OnboardingTour
+    <GuidedTour
       onOpen={registerOpen}
       userId={user?.id}
       skipAutoOpen={!welcomeSeen}

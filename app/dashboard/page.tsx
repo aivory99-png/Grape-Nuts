@@ -342,7 +342,7 @@ export default async function DashboardPage() {
       )}
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div data-tour="kpi-cards" className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <div className="bg-white border border-app-border rounded-2xl p-4">
           <div className="text-[10px] font-bold uppercase tracking-wider text-app-text3 mb-1">
             {lang === 'pt' ? 'Receita do mês' : 'Ingresos del mes'}

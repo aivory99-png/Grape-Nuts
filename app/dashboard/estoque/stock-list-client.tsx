@@ -580,7 +580,7 @@ export default function StockListClient({
       })()}
 
       {/* New product button */}
-      <div className="flex justify-end">
+      <div data-tour="add-stock-btn" className="flex justify-end">
         <Link
           href="/dashboard/estoque/novo"
           className="bg-wine-600 hover:bg-wine-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"

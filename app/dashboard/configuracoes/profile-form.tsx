@@ -174,7 +174,7 @@ export default function ProfileForm({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-app-border overflow-hidden">
+    <div data-tour="profile-section" className="bg-white rounded-2xl border border-app-border overflow-hidden">
       {/* Avatar header */}
       <div className="px-6 pt-6 pb-5 border-b border-app-border">
         <div className="flex items-center gap-5">

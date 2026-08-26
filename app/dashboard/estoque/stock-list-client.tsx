@@ -504,9 +504,9 @@ export default function StockListClient({
                     {/* Name + photo */}
                     <div className="flex items-center gap-2.5">
                       {(sd?.imageUrl ?? photos[ts.wine_id])
-                        ? <img src={sd?.imageUrl ?? photos[ts.wine_id]} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-zinc-700" />
-                        : <div className="w-10 h-10 rounded-lg flex-shrink-0 border border-zinc-700 flex items-center justify-center text-zinc-600" style={{ background: '#27272a' }}>
-                            <WineGlassIcon size={16} />
+                        ? <img src={sd?.imageUrl ?? photos[ts.wine_id]} alt="" className="w-20 h-20 rounded-lg object-cover flex-shrink-0 border border-zinc-700" />
+                        : <div className="w-20 h-20 rounded-lg flex-shrink-0 border border-zinc-700 flex items-center justify-center text-zinc-600" style={{ background: '#27272a' }}>
+                            <WineGlassIcon size={28} />
                           </div>
                       }
                       <div>

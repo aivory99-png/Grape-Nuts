@@ -156,7 +156,7 @@ export default function SalesForm({
         setTimeout(() => router.push('/dashboard/cobrancas'), 1500)
       }
     } catch (err) {
-      console.error('createOrder error:', err)
+      console.error('[vendas] createOrder:', err instanceof Error ? err.message : String(err))
       setResult({ error: lang === 'pt' ? 'Erro inesperado ao criar pedido. Tente novamente.' : 'Error inesperado al crear pedido. Intente de nuevo.' })
     } finally {
       setSubmitting(false)

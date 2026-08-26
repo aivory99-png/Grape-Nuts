@@ -37,7 +37,7 @@ export async function setupAdmin(_state: unknown, formData: FormData) {
   })
 
   if (createError) {
-    console.error('setupAdmin createUser error:', createError)
+    console.error('[setup] createUser:', createError?.code ?? createError?.status)
     // Rollback the setup claim so setup can be retried
     await admin.from('global_settings').delete().eq('key', 'setup_complete')
     return { error: 'Error al crear la cuenta. Inténtalo de nuevo.' }

@@ -34,6 +34,8 @@ function buildCsp(nonce: string): string {
     "img-src 'self' data: blob: https://*.supabase.co https://maps.googleapis.com https://maps.gstatic.com",
     "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://maps.googleapis.com https://maps.gstatic.com",
     "frame-ancestors 'none'",
+    "form-action 'self'",
+    "base-uri 'self'",
   ].join('; ')
 }
 

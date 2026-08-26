@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { getLang } from '@/lib/lang'
 import { t } from '@/lib/i18n'
@@ -10,10 +10,7 @@ export default async function ConfiguracoesPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const admin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
+  const admin = getAdminClient()
 
   const [{ data: profile }, { data: sellerRows }, { data: authData }, lang] = await Promise.all([
     supabase.from('user_profiles').select('name, role, email, preferred_seller_id').eq('id', user.id).single(),

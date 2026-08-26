@@ -112,8 +112,14 @@ export default function StockForm({
     reader.readAsDataURL(file)
 
     const supabase = createClient()
-    const ext = file.name.split('.').pop() ?? 'jpg'
-    const path = `${crypto.randomUUID()}.${ext}`
+    const ALLOWED_EXTS = new Set(['jpg', 'jpeg', 'png', 'webp', 'avif'])
+    const rawExt = (file.name.split('.').pop() ?? '').toLowerCase()
+    if (!ALLOWED_EXTS.has(rawExt)) {
+      setUploadErr(lang === 'pt' ? 'Formato não suportado. Use JPG, PNG ou WebP.' : 'Formato no soportado. Use JPG, PNG o WebP.')
+      setUploading(false)
+      return
+    }
+    const path = `${crypto.randomUUID()}.${rawExt}`
     const { data, error } = await supabase.storage.from('wine-images').upload(path, file, {
       cacheControl: '3600',
       upsert: false,

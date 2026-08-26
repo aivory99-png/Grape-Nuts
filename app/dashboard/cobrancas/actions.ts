@@ -104,18 +104,24 @@ export async function updateOrderStatus(
   const orgId = await getOrgId()
   if (!orgId) return
 
+  // Pre-check ownership before any mutation (CN-001 IDOR fix)
+  const { data: orderCheck } = await supabase
+    .from('orders').select('id')
+    .eq('id', orderId).eq('organization_id', orgId).single()
+  if (!orderCheck) return
+
   await supabase.from('orders').update({ status }).eq('id', orderId).eq('organization_id', orgId)
 
   if (status === 'paid' && paymentId) {
     await supabase.from('payments').update({
       status:  'paid',
       paid_at: new Date().toISOString().split('T')[0],
-    }).eq('id', paymentId)
+    }).eq('id', paymentId).eq('order_id', orderId)
   } else if ((status === 'open' || status === 'shipped') && paymentId) {
     await supabase.from('payments').update({
       status:  'pending',
       paid_at: null,
-    }).eq('id', paymentId)
+    }).eq('id', paymentId).eq('order_id', orderId)
   }
 
   revalidatePath('/dashboard')

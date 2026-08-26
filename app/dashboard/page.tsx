@@ -34,7 +34,7 @@ export default async function DashboardPage() {
   const [ordersRes, allPaymentsRes, stockRes, clientsRes, alertWinesRes] = await Promise.all([
     supabase
       .from('orders')
-      .select('id, client_id, order_date, total_revenue, status, payment_type, payment_term, notes, created_at')
+      .select('id, client_id, order_date, total_revenue, status, payment_type, payment_term, payment_category, notes, created_at')
       .neq('status', 'cancelled')
       .order('order_date', { ascending: false }),
     supabase
@@ -258,6 +258,7 @@ export default async function DashboardPage() {
       chargedValue: (o as { total_revenue?: number }).total_revenue ?? 0,
       paymentType: (o as { payment_type?: string }).payment_type ?? null,
       paymentTerm: (o as { payment_term?: string }).payment_term ?? null,
+      paymentCategory: (o as { payment_category?: string }).payment_category ?? null,
       dueDate: payment?.due_date ?? null,
       paymentId: payment?.id ?? null,
     }

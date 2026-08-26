@@ -35,6 +35,14 @@ const DEFAULT_PAYMENT_TERMS = [
   { value: '60_dias',  label: '60 dias' },
 ]
 
+function getDefaultPaymentCategories(lang: Lang) {
+  return [
+    { value: 'faturado',    label: lang === 'pt' ? 'Faturado'    : 'Facturado' },
+    { value: 'sem_faturar', label: lang === 'pt' ? 'Sem Faturar' : 'Sin Facturar' },
+    { value: 'consignado',  label: 'Consignado' },
+  ]
+}
+
 function fmt(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n)
 }
@@ -45,6 +53,7 @@ type InitialValues = {
   orderDate: string
   paymentType: string
   paymentTerm: string
+  paymentCategory: string
   notes: string
   carrier: string
   items: OrderItem[]
@@ -62,15 +71,17 @@ export default function EditOrderForm({
 }) {
   const { opts: paymentTypeOpts, addOption: addPayType, deleteOption: delPayType, editOption: editPayType } = useLocalOptions('payment_type', DEFAULT_PAYMENT_TYPES)
   const { opts: paymentTermOpts, addOption: addPayTerm, deleteOption: delPayTerm, editOption: editPayTerm } = useLocalOptions('payment_term', DEFAULT_PAYMENT_TERMS)
+  const { opts: paymentCategoryOpts, addOption: addPayCat, deleteOption: delPayCat, editOption: editPayCat } = useLocalOptions('payment_category', getDefaultPaymentCategories(lang))
   const { opts: carrierOpts, addOption: addCarrier, deleteOption: delCarrier, editOption: editCarrier } = useLocalOptions('carriers', DEFAULT_CARRIERS)
 
   const today = new Date().toISOString().split('T')[0]
-  const [clientId,    setClientId]    = useState(initialValues.clientId)
-  const [sellerId,    setSellerId]    = useState(initialValues.sellerId)
-  const [orderDate,   setOrderDate]   = useState(initialValues.orderDate)
-  const [paymentType, setPaymentType] = useState(initialValues.paymentType)
-  const [paymentTerm, setPaymentTerm] = useState(initialValues.paymentTerm)
-  const [carrier,     setCarrier]     = useState(initialValues.carrier)
+  const [clientId,         setClientId]         = useState(initialValues.clientId)
+  const [sellerId,         setSellerId]          = useState(initialValues.sellerId)
+  const [orderDate,        setOrderDate]         = useState(initialValues.orderDate)
+  const [paymentType,      setPaymentType]       = useState(initialValues.paymentType)
+  const [paymentTerm,      setPaymentTerm]       = useState(initialValues.paymentTerm)
+  const [paymentCategory,  setPaymentCategory]   = useState(initialValues.paymentCategory)
+  const [carrier,          setCarrier]           = useState(initialValues.carrier)
   const [notes,       setNotes]       = useState(initialValues.notes)
   const [items, setItems] = useState<OrderItem[]>(
     initialValues.items.length > 0
@@ -114,6 +125,7 @@ export default function EditOrderForm({
     try {
       const res = await updateOrder({
         orderId, clientId, sellerId, paymentType, paymentTerm,
+        paymentCategory: paymentCategory || undefined,
         carrier: carrier || undefined, items: validItems, notes, orderDate,
       })
       setResult(res)
@@ -244,7 +256,7 @@ export default function EditOrderForm({
         <h2 className="text-sm font-semibold text-app-text">{lang === 'pt' ? 'Pagamento' : 'Pago'}</h2>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={lbl}>{lang === 'pt' ? 'Tipo' : 'Tipo'}</label>
+            <label className={lbl}>{lang === 'pt' ? 'Método de Pagamento' : 'Método de Pago'}</label>
             <Combobox options={paymentTypeOpts} value={paymentType} onChange={setPaymentType}
               placeholder={lang === 'pt' ? 'Selecionar…' : 'Seleccionar…'}
               onCreateOption={addPayType} onDeleteOption={delPayType} onEditOption={editPayType} />
@@ -255,7 +267,13 @@ export default function EditOrderForm({
               placeholder={lang === 'pt' ? 'Selecionar…' : 'Seleccionar…'}
               onCreateOption={addPayTerm} onDeleteOption={delPayTerm} onEditOption={editPayTerm} />
           </div>
-          <div className="col-span-2 md:col-span-1">
+          <div>
+            <label className={lbl}>{lang === 'pt' ? 'Categoria' : 'Categoría'}</label>
+            <Combobox options={paymentCategoryOpts} value={paymentCategory} onChange={setPaymentCategory}
+              placeholder={lang === 'pt' ? 'Selecionar…' : 'Seleccionar…'}
+              onCreateOption={addPayCat} onDeleteOption={delPayCat} onEditOption={editPayCat} />
+          </div>
+          <div>
             <label className={lbl}>
               {lang === 'pt' ? 'Transportadora' : 'Transportista'}{' '}
               <span className="font-normal text-app-text3">— opcional</span>

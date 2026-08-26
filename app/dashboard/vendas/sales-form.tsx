@@ -24,6 +24,14 @@ function getDefaultCarriers(lang: Lang) {
   ]
 }
 
+function getDefaultPaymentCategories(lang: Lang) {
+  return [
+    { value: 'faturado',    label: lang === 'pt' ? 'Faturado'    : 'Facturado' },
+    { value: 'sem_faturar', label: lang === 'pt' ? 'Sem Faturar' : 'Sin Facturar' },
+    { value: 'consignado',  label: 'Consignado' },
+  ]
+}
+
 const DEFAULT_PAYMENT_TYPES = [
   { value: 'boleto',         label: 'Boleto' },
   { value: 'pix',            label: 'PIX' },
@@ -57,6 +65,7 @@ export default function SalesForm({
 }) {
   const { opts: paymentTypeOpts, addOption: addPayType, deleteOption: delPayType, editOption: editPayType } = useLocalOptions('payment_type', DEFAULT_PAYMENT_TYPES)
   const { opts: paymentTermOpts, addOption: addPayTerm, deleteOption: delPayTerm, editOption: editPayTerm } = useLocalOptions('payment_term', getDefaultPaymentTerms(lang))
+  const { opts: paymentCategoryOpts, addOption: addPayCat, deleteOption: delPayCat, editOption: editPayCat } = useLocalOptions('payment_category', getDefaultPaymentCategories(lang))
   const { opts: carrierOpts, addOption: addCarrier, deleteOption: delCarrier, editOption: editCarrier } = useLocalOptions('carriers', getDefaultCarriers(lang))
 
   const today = new Date().toISOString().split('T')[0]
@@ -64,8 +73,9 @@ export default function SalesForm({
   const defaultClient = defaultClientId ? clients.find(c => c.id === defaultClientId) : undefined
   const [sellerId, setSellerId] = useState(defaultClient?.responsible_id ?? '')
   const [orderDate, setOrderDate] = useState(today)
-  const [paymentType, setPaymentType] = useState('boleto')
-  const [paymentTerm, setPaymentTerm] = useState('avista')
+  const [paymentType,     setPaymentType]     = useState('boleto')
+  const [paymentTerm,     setPaymentTerm]     = useState('avista')
+  const [paymentCategory, setPaymentCategory] = useState('')
   const [items, setItems] = useState<OrderItem[]>([{ wine_id: '', quantity: 1, sale_price: 0, unit: 'botella' }])
   const [carrier, setCarrier] = useState('')
   const [notes, setNotes] = useState('')
@@ -137,7 +147,7 @@ export default function SalesForm({
         ...i,
         bottles_per_case: wines.find(w => w.id === i.wine_id)?.bottles_per_case ?? null,
       }))
-      const res = await createOrder({ clientId, sellerId, paymentType, paymentTerm, carrier: carrier || undefined, items: itemsWithBpc, notes, orderDate })
+      const res = await createOrder({ clientId, sellerId, paymentType, paymentTerm, paymentCategory: paymentCategory || undefined, carrier: carrier || undefined, items: itemsWithBpc, notes, orderDate })
       setResult(res)
       if (res.success) {
         setClientId(''); setSellerId(''); setCarrier('')
@@ -358,6 +368,19 @@ export default function SalesForm({
               onCreateOption={addPayTerm}
               onDeleteOption={delPayTerm}
               onEditOption={editPayTerm}
+            />
+          </div>
+          <div>
+            <label className={lbl}>{t('sale_category', lang)}</label>
+            <Combobox
+              options={paymentCategoryOpts}
+              value={paymentCategory}
+              onChange={setPaymentCategory}
+              placeholder={lang === 'pt' ? 'Selecionar…' : 'Seleccionar…'}
+              createLabel={lang === 'pt' ? 'Nova categoria' : 'Nueva categoría'}
+              onCreateOption={addPayCat}
+              onDeleteOption={delPayCat}
+              onEditOption={editPayCat}
             />
           </div>
           <div className="col-span-2 md:col-span-1">

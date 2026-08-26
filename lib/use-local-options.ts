@@ -1,11 +1,27 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 type Option = { value: string; label: string }
 
 export function useLocalOptions(key: string, defaults: Option[]) {
-  const [opts, setOpts] = useState<Option[]>(defaults)
+  const storageKey = `gn_opts_${key}`
+
+  const [opts, setOpts] = useState<Option[]>(() => {
+    if (typeof window === 'undefined') return defaults
+    try {
+      const stored = localStorage.getItem(storageKey)
+      if (stored) {
+        const parsed = JSON.parse(stored) as Option[]
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch {}
+    return defaults
+  })
+
+  useEffect(() => {
+    try { localStorage.setItem(storageKey, JSON.stringify(opts)) } catch {}
+  }, [opts, storageKey])
 
   const addOption = useCallback(async (label: string): Promise<Option | void> => {
     const value = label.trim().toLowerCase()
@@ -28,5 +44,10 @@ export function useLocalOptions(key: string, defaults: Option[]) {
     setOpts((prev) => prev.map((o) => o.value === _value ? { value: o.value, label: newLabel.trim() } : o))
   }, [])
 
-  return { opts, addOption, deleteOption, editOption }
+  const resetToDefaults = useCallback(() => {
+    setOpts(defaults)
+    try { localStorage.removeItem(storageKey) } catch {}
+  }, [defaults, storageKey])
+
+  return { opts, addOption, deleteOption, editOption, resetToDefaults }
 }

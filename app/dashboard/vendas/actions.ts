@@ -13,6 +13,7 @@ export async function createOrder(data: {
   sellerId: string
   paymentType: string
   paymentTerm: string
+  paymentCategory?: string
   carrier?: string
   items: OrderItem[]
   notes: string
@@ -63,13 +64,14 @@ export async function createOrder(data: {
       .insert({
         client_id:       data.clientId,
         seller_id:       data.sellerId || null,
-        payment_type:    data.paymentType,
-        payment_term:    VALID_PAYMENT_TERMS.has(data.paymentTerm) ? data.paymentTerm : 'avista',
-        total_revenue:   totalRevenue,
-        status:          'open',
-        notes:           data.notes || null,
-        order_date:      data.orderDate || new Date().toISOString().split('T')[0],
-        organization_id: orgId,
+        payment_type:     data.paymentType,
+        payment_term:     VALID_PAYMENT_TERMS.has(data.paymentTerm) ? data.paymentTerm : 'avista',
+        payment_category: data.paymentCategory || null,
+        total_revenue:    totalRevenue,
+        status:           'open',
+        notes:            data.notes || null,
+        order_date:       data.orderDate || new Date().toISOString().split('T')[0],
+        organization_id:  orgId,
       })
       .select('id')
       .single()
@@ -149,6 +151,7 @@ export async function updateOrder(data: {
   sellerId: string
   paymentType: string
   paymentTerm: string
+  paymentCategory?: string
   carrier?: string
   items: OrderItem[]
   notes: string
@@ -230,13 +233,14 @@ export async function updateOrder(data: {
     // 7. Update order
     const validTerms = new Set(['avista', '30_dias', '60_dias'])
     const { error: orderErr } = await supabase.from('orders').update({
-      client_id:    data.clientId,
-      seller_id:    data.sellerId || null,
-      payment_type: data.paymentType,
-      payment_term: validTerms.has(data.paymentTerm) ? data.paymentTerm : 'avista',
-      total_revenue: totalRevenue,
-      notes:        data.notes || null,
-      order_date:   data.orderDate,
+      client_id:        data.clientId,
+      seller_id:        data.sellerId || null,
+      payment_type:     data.paymentType,
+      payment_term:     validTerms.has(data.paymentTerm) ? data.paymentTerm : 'avista',
+      payment_category: data.paymentCategory || null,
+      total_revenue:    totalRevenue,
+      notes:            data.notes || null,
+      order_date:       data.orderDate,
     }).eq('id', data.orderId)
     if (orderErr) return { error: `Erro ao atualizar pedido: ${orderErr.message}` }
 

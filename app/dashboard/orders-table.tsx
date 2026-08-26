@@ -20,6 +20,7 @@ export type OrderRow = {
   items: { name: string; qty: number }[]
   paymentType: string | null
   paymentTerm: string | null
+  paymentCategory: string | null
   dueDate: string | null
   paymentId: string | null
 }
@@ -67,7 +68,7 @@ function toInputDate(d: string | null) {
 
 type EditCell = { rowId: string; field: 'chargedValue' | 'paymentType' | 'dueDate' | 'chargedAmount' | 'orderDate' } | null
 
-const COL_COUNT = 13
+const COL_COUNT = 14
 
 export default function OrdersTable({ rows: initialRows, lang }: { rows: OrderRow[]; lang: Lang }) {
   const router = useRouter()
@@ -349,8 +350,11 @@ export default function OrdersTable({ rows: initialRows, lang }: { rows: OrderRo
               <th className={thSortWrap} style={{ width: 80 }} onClick={() => handleSortClick('orderDate')}>
                 Pedido<br/>confirmado<SortIcon col="orderDate" />
               </th>
-              <th className={thSort} style={{ width: 160 }} onClick={() => handleSortClick('paymentType')}>
-                {lang === 'pt' ? 'Pagto / Prazo' : 'Pago / Plazo'}<SortIcon col="paymentType" />
+              <th className={thSort} style={{ width: 140 }} onClick={() => handleSortClick('paymentType')}>
+                {lang === 'pt' ? 'Método / Prazo' : 'Método / Plazo'}<SortIcon col="paymentType" />
+              </th>
+              <th className={thSort} style={{ width: 110 }}>
+                {lang === 'pt' ? 'Categoria' : 'Categoría'}
               </th>
               <th className={thSortWrap} style={{ width: 80 }} onClick={() => handleSortClick('dueDate')}>
                 {lang === 'pt' ? 'Vencimento' : 'Vencimiento'}<br/>{lang === 'pt' ? 'fatura' : 'factura'}<SortIcon col="dueDate" />
@@ -483,6 +487,13 @@ export default function OrdersTable({ rows: initialRows, lang }: { rows: OrderRo
                           )}
                         </div>
                       )}
+                    </td>
+
+                    {/* Categoria de Pagamento */}
+                    <td className={td}>
+                      {row.paymentCategory
+                        ? <span className="text-[11px] px-2 py-0.5 rounded-full bg-app-bg text-app-text2 border border-app-border whitespace-nowrap">{row.paymentCategory}</span>
+                        : <span className="text-app-text3 italic text-[11px]">—</span>}
                     </td>
 
                     {/* Vencimento fatura — editable */}

@@ -15,7 +15,7 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
     orderRes, itemsRes, paymentRes, deliveryRes,
     clientsRes, winesRes, stockRes, membersRes,
   ] = await Promise.all([
-    supabase.from('orders').select('id, client_id, seller_id, order_date, payment_type, payment_term, notes, status').eq('id', id).single(),
+    supabase.from('orders').select('id, client_id, seller_id, order_date, payment_type, payment_term, payment_category, notes, status').eq('id', id).single(),
     supabase.from('order_items').select('wine_id, quantity, sale_price').eq('order_id', id),
     supabase.from('payments').select('due_date, amount, status').eq('order_id', id).maybeSingle(),
     supabase.from('deliveries').select('company_name').eq('order_id', id).maybeSingle(),
@@ -64,13 +64,14 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
       <EditOrderForm
         orderId={id}
         initialValues={{
-          clientId:    order.client_id ?? '',
-          sellerId:    order.seller_id ?? '',
-          orderDate:   order.order_date ?? new Date().toISOString().split('T')[0],
-          paymentType: order.payment_type ?? 'boleto',
-          paymentTerm: order.payment_term ?? 'avista',
-          notes:       order.notes ?? '',
-          carrier:     deliveryRes.data?.company_name ?? '',
+          clientId:        order.client_id ?? '',
+          sellerId:        order.seller_id ?? '',
+          orderDate:       order.order_date ?? new Date().toISOString().split('T')[0],
+          paymentType:     order.payment_type ?? 'boleto',
+          paymentTerm:     order.payment_term ?? 'avista',
+          paymentCategory: (order as { payment_category?: string }).payment_category ?? '',
+          notes:           order.notes ?? '',
+          carrier:         deliveryRes.data?.company_name ?? '',
           items:       (itemsRes.data ?? []).map(i => ({
             wine_id:    i.wine_id,
             quantity:   i.quantity,

@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useRef, useCallback, useState } from 'react'
+import { useRef, useCallback, useState, useEffect } from 'react'
 import { logout } from '@/app/login/actions'
 import LangToggle from '@/components/lang-toggle'
 import ThemeToggle from '@/components/theme-toggle'
 import GrapesNutsLogo from '@/components/logo'
 import OnboardingTour from '@/components/onboarding-tour'
 import GettingStartedPanel from '@/components/getting-started-panel'
+import WelcomeModal from '@/components/welcome-modal'
 import type { UserProfile } from '@/lib/types'
 import type { Lang } from '@/lib/i18n'
 import type { Theme } from '@/lib/theme'
@@ -49,6 +50,17 @@ export default function NavShell({
   const [gsOpen, setGsOpen] = useState(false)
   const openTourRef = useRef<() => void>(() => {})
   const registerOpen = useCallback((fn: () => void) => { openTourRef.current = fn }, [])
+  const [welcomeSeen, setWelcomeSeen] = useState(true) // default true to avoid flash
+
+  useEffect(() => {
+    const key = `gn_welcome_v1_${user?.id ?? 'anon'}`
+    setWelcomeSeen(!!localStorage.getItem(key))
+  }, [user?.id])
+
+  function handleStartTour() {
+    setWelcomeSeen(true)
+    setTimeout(() => openTourRef.current(), 100)
+  }
 
   const navItems = [
     { href: '/dashboard',              label: t('nav_dashboard', lang), iconKey: 'home' as const },
@@ -69,7 +81,11 @@ export default function NavShell({
 
   return (
     <>
-    <OnboardingTour onOpen={registerOpen} userId={user?.id} />
+    <OnboardingTour
+      onOpen={registerOpen}
+      userId={user?.id}
+      skipAutoOpen={!welcomeSeen}
+    />
     <GettingStartedPanel open={gsOpen} onClose={() => setGsOpen(false)} lang={lang} />
     <div className="flex h-screen bg-app-bg overflow-hidden">
       {/* ── SIDEBAR (desktop) ── */}
@@ -202,6 +218,13 @@ export default function NavShell({
         })}
       </nav>
     </div>
+
+    <WelcomeModal
+      userId={user?.id}
+      userName={user?.name}
+      onStartTour={handleStartTour}
+      onDismiss={() => setWelcomeSeen(true)}
+    />
     </>
   )
 }

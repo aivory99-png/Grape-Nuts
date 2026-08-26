@@ -154,9 +154,11 @@ const UI = {
 export default function OnboardingTour({
   onOpen,
   userId,
+  skipAutoOpen,
 }: {
   onOpen?: (fn: () => void) => void
   userId?: string
+  skipAutoOpen?: boolean
 }) {
   const [visible,   setVisible]   = useState(false)
   const [lang,      setLang]      = useState<Lang | null>(null)
@@ -169,11 +171,12 @@ export default function OnboardingTour({
   useEffect(() => { if (onOpen) onOpen(open) }, [onOpen, open])
 
   useEffect(() => {
+    if (skipAutoOpen) return
     if (typeof window !== 'undefined' && !localStorage.getItem(storageKey(userId))) {
       const t = setTimeout(() => setVisible(true), 700)
       return () => clearTimeout(t)
     }
-  }, [userId])
+  }, [userId, skipAutoOpen])
 
   function close() {
     if (typeof window !== 'undefined') localStorage.setItem(storageKey(userId), '1')

@@ -473,7 +473,7 @@ export default function GuidedTour({
       <div
         ref={overlayRef}
         className="fixed inset-0 z-[9900]"
-        style={{ pointerEvents: 'auto' }}
+        style={{ pointerEvents: 'auto', backdropFilter: 'blur(2px)' }}
         onClick={e => { if (e.target === overlayRef.current) close() }}
       >
         {/* SVG spotlight */}
@@ -484,7 +484,7 @@ export default function GuidedTour({
               {cx && <rect x={cx.x} y={cx.y} width={cx.w} height={cx.h} rx={cx.r} ry={cx.r} fill="black" />}
             </mask>
           </defs>
-          <rect width={vw} height={vh} fill="rgba(0,0,0,0.65)" mask="url(#gn-cutout-mask)" />
+          <rect width={vw} height={vh} fill="rgba(0,0,0,0.82)" mask="url(#gn-cutout-mask)" />
           {cx && (
             <rect
               className="gn-ring"

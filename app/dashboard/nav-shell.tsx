@@ -84,6 +84,7 @@ export default function NavShell({
     <GuidedTour
       onOpen={registerOpen}
       userId={user?.id}
+      userName={user?.name}
       skipAutoOpen={!welcomeSeen}
     />
     <GettingStartedPanel open={gsOpen} onClose={() => setGsOpen(false)} lang={lang} />

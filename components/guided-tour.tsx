@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import GrapesNutsLogo from '@/components/logo'
+import { createClient } from '@/lib/supabase/client'
 
 const STORAGE_KEY = (uid?: string) => `gn_guided_tour_seen_v1_${uid ?? 'anon'}`
 
 /* ── Icons ── */
-function Icon({ d, size = 28 }: { d: string | string[]; size?: number }) {
+function Icon({ d, size = 22 }: { d: string | string[]; size?: number }) {
   const paths = Array.isArray(d) ? d : [d]
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
@@ -27,35 +27,41 @@ const ICONS = {
   close:    ['M18 6L6 18', 'M6 6l12 12'],
 }
 
-/* ── Step definitions ── */
-type Step = {
+/* ── Step config ── */
+type StepConfig = {
   page: string
   selector: string
   icon: keyof typeof ICONS
   gradient: string
   iconBg: string
   dot: string
-  dotText: string
   subtitle: string
   title: string
-  body: string
-  tips: string[]
+  body: (ctx: TourCtx) => string
+  tips: (ctx: TourCtx) => string[]
 }
 
-const STEPS: Step[] = [
+type TourCtx = {
+  firstName: string
+  wineCount: number
+  clientCount: number
+}
+
+const STEP_CONFIGS: StepConfig[] = [
   {
     page: '/dashboard',
     selector: '[data-tour="kpi-cards"]',
     icon: 'chart',
     gradient: 'from-slate-800 to-slate-700',
-    iconBg: 'bg-blue-500/20', dot: 'bg-blue-500', dotText: 'text-white',
+    iconBg: 'bg-blue-500/20', dot: 'bg-blue-400',
     subtitle: 'O seu negócio de relance',
     title: 'Painel Financeiro',
-    body: 'Os 4 cartões mostram a saúde do negócio em tempo real: receita do mês, pedidos em aberto, cobranças vencidas e pagamentos recebidos.',
-    tips: [
+    body: ({ firstName }) =>
+      `${firstName}, aqui você vê tudo o que importa sem abrir o Excel — receita do mês, pedidos em aberto, cobranças vencidas e pagamentos recebidos, tudo a tempo real.`,
+    tips: () => [
       'Os números atualizam automaticamente a cada pedido registado',
-      'Clique em qualquer cartão para explorar o detalhe',
       'Use os filtros rápidos: Este mês / Próximo mês / Este ano',
+      'Clique em qualquer cartão para explorar o detalhe',
     ],
   },
   {
@@ -63,13 +69,14 @@ const STEPS: Step[] = [
     selector: '[data-tour="revenue-chart"]',
     icon: 'chart',
     gradient: 'from-blue-900 to-blue-700',
-    iconBg: 'bg-sky-400/20', dot: 'bg-sky-400', dotText: 'text-white',
+    iconBg: 'bg-sky-400/20', dot: 'bg-sky-400',
     subtitle: 'Evolução mensal das vendas',
     title: 'Gráfico de Receita',
-    body: 'Visualize a evolução mensal das suas vendas. O gráfico é interativo — clique numa barra para filtrar os pedidos daquele mês.',
-    tips: [
+    body: () =>
+      'O gráfico de barras resume a sua receita mês a mês. Clique numa barra e todos os pedidos daquele mês aparecem instantaneamente abaixo — filtragem com um clique.',
+    tips: () => [
       'Clique numa barra para filtrar por aquele mês',
-      'A tabela de pedidos abaixo atualiza instantaneamente',
+      'A tabela de pedidos abaixo atualiza-se instantaneamente',
       'Filtre por cliente ou vinho para análises mais detalhadas',
     ],
   },
@@ -78,11 +85,12 @@ const STEPS: Step[] = [
     selector: '[data-tour="orders-table"]',
     icon: 'payment',
     gradient: 'from-teal-800 to-teal-700',
-    iconBg: 'bg-teal-500/20', dot: 'bg-teal-400', dotText: 'text-white',
+    iconBg: 'bg-teal-500/20', dot: 'bg-teal-400',
     subtitle: 'Pagamentos pendentes e histórico',
     title: 'Pedidos & Cobranças',
-    body: 'Todos os pedidos num só lugar. Expanda qualquer linha com a seta para registar o envio, código de rastreio e marcar pagamentos como recebidos.',
-    tips: [
+    body: () =>
+      'Todos os seus pedidos num só lugar — sem tabelas separadas. Expanda qualquer linha para registar o envio com código de rastreio e marcar pagamentos como recebidos.',
+    tips: () => [
       'Expanda o pedido → aba Envio para registar o rastreio',
       'Aba Cobrança → marque cada pagamento como Pago com a data',
       'O status (Enviado / Pago) atualiza-se automaticamente',
@@ -93,14 +101,17 @@ const STEPS: Step[] = [
     selector: '[data-tour="add-stock-btn"]',
     icon: 'stock',
     gradient: 'from-purple-900 to-purple-700',
-    iconBg: 'bg-purple-500/20', dot: 'bg-purple-400', dotText: 'text-white',
+    iconBg: 'bg-purple-500/20', dot: 'bg-purple-400',
     subtitle: 'Controle total dos seus vinhos',
     title: 'Estoque',
-    body: 'Os seus vinhos já estão aqui! Quando receber nova mercadoria, clique em "+ Novo Produto" para registar a entrada com preço de compra e quantidade.',
-    tips: [
+    body: ({ wineCount }) =>
+      wineCount > 0
+        ? `Os seus ${wineCount} vinhos já estão carregados e prontos a usar! Quando receber nova mercadoria, "+ Novo Produto" regista a entrada com preço de compra e quantidade.`
+        : 'Os seus vinhos estão aqui, prontos a usar! Quando receber nova mercadoria, "+ Novo Produto" regista a entrada com preço de compra e quantidade.',
+    tips: () => [
       'O estoque desconta automaticamente em cada pedido confirmado',
       '"Repor" adiciona unidades a um vinho já existente',
-      'Edite preço e quantidade diretamente na tabela',
+      'Alterne entre vista Board e Lista para ver os vinhos',
     ],
   },
   {
@@ -108,13 +119,16 @@ const STEPS: Step[] = [
     selector: '[data-tour="client-list"]',
     icon: 'clients',
     gradient: 'from-emerald-800 to-emerald-700',
-    iconBg: 'bg-emerald-500/20', dot: 'bg-emerald-400', dotText: 'text-white',
+    iconBg: 'bg-emerald-500/20', dot: 'bg-emerald-400',
     subtitle: 'Ativos · Prospects',
     title: 'Clientes',
-    body: 'Gerencie os seus Clientes Ativos e Prospects. Cada cliente tem ficha completa com histórico de pedidos, contacto e notas.',
-    tips: [
+    body: ({ clientCount }) =>
+      clientCount > 0
+        ? `Os seus ${clientCount} clientes e prospects já estão aqui. Clique em qualquer um para ver o histórico completo de pedidos, volume comprado e contacto.`
+        : 'Todos os seus clientes e prospects num só lugar. Clique em qualquer um para ver o histórico completo de pedidos, volume e contacto.',
+    tips: () => [
       'Clique num cliente para ver a ficha e o histórico de pedidos',
-      'Cidade e Tipo de cliente são editáveis',
+      'Use o pódio no topo para identificar os clientes mais valiosos',
       'Use "+ Novo Cliente" para adicionar novos clientes',
     ],
   },
@@ -123,11 +137,12 @@ const STEPS: Step[] = [
     selector: '[data-tour="sales-form"]',
     icon: 'cart',
     gradient: 'from-orange-800 to-orange-700',
-    iconBg: 'bg-orange-500/20', dot: 'bg-orange-400', dotText: 'text-white',
-    subtitle: 'Registrar pedido recebido do cliente',
+    iconBg: 'bg-orange-500/20', dot: 'bg-orange-400',
+    subtitle: 'Registar pedido recebido do cliente',
     title: 'Novo Pedido',
-    body: 'Selecione o cliente, escolha os vinhos e as quantidades — o preço de lista preenche-se automaticamente. Defina o prazo de pagamento e confirme.',
-    tips: [
+    body: ({ firstName }) =>
+      `${firstName}, registar um pedido leva menos de 1 minuto: selecione o cliente, escolha os vinhos — o preço preenche-se automaticamente. Mais rápido que qualquer Excel!`,
+    tips: () => [
       'A data do pedido é editável — registe também vendas passadas',
       'O tipo "Prospect (brinde)" não gera cobrança pendente',
       'Pode adicionar vários vinhos no mesmo pedido',
@@ -138,21 +153,23 @@ const STEPS: Step[] = [
     selector: '[data-tour="profile-section"]',
     icon: 'settings',
     gradient: 'from-zinc-800 to-zinc-700',
-    iconBg: 'bg-zinc-500/20', dot: 'bg-zinc-400', dotText: 'text-white',
+    iconBg: 'bg-zinc-500/20', dot: 'bg-zinc-400',
     subtitle: 'Conta e preferências',
     title: 'Configurações',
-    body: 'Atualize o seu perfil, adicione vendedores à equipa e escolha o idioma da plataforma. A equipa DeTech está sempre disponível para ajudar.',
-    tips: [
-      'Os vendedores recebem acesso com e-mail e senha',
-      'Mude o idioma (ES/PT) em qualquer página',
-      'O modo escuro/claro é guardado por dispositivo',
+    body: () =>
+      'Atualize o seu perfil e preferências. Se no futuro tiver uma equipa de vendas, basta adicionar vendedores aqui — eles recebem acesso imediato com o próprio e-mail.',
+    tips: () => [
+      'Os vendedores recebem acesso com e-mail e senha próprios',
+      'Mude o idioma (PT/ES) em qualquer momento no menu lateral',
+      'A equipa DeTech está sempre disponível para ajudar',
     ],
   },
 ]
 
-/* ── Helpers ── */
+/* ── Types ── */
 type Rect = { top: number; left: number; width: number; height: number }
 
+/* ── Helpers ── */
 async function waitForElement(selector: string, retries = 16): Promise<Element | null> {
   for (let i = 0; i < retries; i++) {
     const el = document.querySelector(selector)
@@ -168,10 +185,12 @@ function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min
 export default function GuidedTour({
   onOpen,
   userId,
+  userName,
   skipAutoOpen,
 }: {
   onOpen?: (fn: () => void) => void
   userId?: string
+  userName?: string
   skipAutoOpen?: boolean
 }) {
   const router   = useRouter()
@@ -185,8 +204,26 @@ export default function GuidedTour({
   const [animating,  setAnimating]  = useState(false)
   const [cardPos,    setCardPos]    = useState<{ top: number; left: number } | null>(null)
 
+  /* real data from Supabase */
+  const [wineCount,   setWineCount]   = useState(0)
+  const [clientCount, setClientCount] = useState(0)
+
   const overlayRef = useRef<HTMLDivElement>(null)
   const cardRef    = useRef<HTMLDivElement>(null)
+
+  const firstName = (userName ?? 'Paulo').split(' ')[0]
+
+  /* fetch real stats once */
+  useEffect(() => {
+    const sb = createClient()
+    Promise.all([
+      sb.from('wines').select('id', { count: 'exact', head: true }),
+      sb.from('clients').select('id', { count: 'exact', head: true }),
+    ]).then(([w, c]) => {
+      if (w.count != null) setWineCount(w.count)
+      if (c.count != null) setClientCount(c.count)
+    })
+  }, [])
 
   /* expose open fn */
   const openTour = useCallback(() => {
@@ -198,22 +235,27 @@ export default function GuidedTour({
   /* auto-open first visit */
   useEffect(() => {
     if (skipAutoOpen) return
-    const key = STORAGE_KEY(userId)
-    if (!localStorage.getItem(key)) {
+    if (!localStorage.getItem(STORAGE_KEY(userId))) {
       const t = setTimeout(() => setActive(true), 700)
       return () => clearTimeout(t)
     }
   }, [userId, skipAutoOpen])
 
-  const step = STEPS[stepIdx]
+  const stepConfig = STEP_CONFIGS[stepIdx]
+  const ctx: TourCtx = { firstName, wineCount, clientCount }
+
+  /* current step with resolved content */
+  const step = {
+    ...stepConfig,
+    bodyText: stepConfig.body(ctx),
+    tipsText: stepConfig.tips(ctx),
+  }
 
   /* navigate to step's page */
   useEffect(() => {
     if (!active) return
     if (pathname !== step.page) {
-      setNavigating(true)
-      setTargetRect(null)
-      setCardPos(null)
+      setNavigating(true); setTargetRect(null); setCardPos(null)
       router.push(step.page)
     } else {
       setNavigating(false)
@@ -224,107 +266,77 @@ export default function GuidedTour({
   useEffect(() => {
     if (!active || navigating || pathname !== step.page) return
     let cancelled = false
-
     ;(async () => {
       const el = await waitForElement(step.selector)
       if (cancelled) return
       if (!el) { setTargetRect(null); return }
-
       const r = el.getBoundingClientRect()
       const PAD = 10
-      const rect: Rect = {
-        top:    r.top    - PAD,
-        left:   r.left   - PAD,
-        width:  r.width  + PAD * 2,
-        height: r.height + PAD * 2,
-      }
-      setTargetRect(rect)
-
+      setTargetRect({ top: r.top - PAD, left: r.left - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 })
       if (r.top < 80 || r.bottom > window.innerHeight - 80) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
     })()
-
     return () => { cancelled = true }
   }, [active, navigating, stepIdx, step.selector, step.page, pathname])
 
   /* position card near element */
   useEffect(() => {
     if (!targetRect || !cardRef.current) { setCardPos(null); return }
-
-    const CARD_W  = 340
-    const CARD_H  = cardRef.current.offsetHeight || 460
-    const MARGIN  = 14
+    const CARD_W = 340
+    const CARD_H = cardRef.current.offsetHeight || 460
+    const MARGIN = 14
     const vw = window.innerWidth
     const vh = window.innerHeight
 
-    const spaceBelow  = vh - (targetRect.top + targetRect.height)
-    const spaceAbove  = targetRect.top
+    const below = vh - (targetRect.top + targetRect.height)
+    const above = targetRect.top
+    let top = below >= CARD_H + MARGIN
+      ? targetRect.top + targetRect.height + MARGIN
+      : above >= CARD_H + MARGIN
+        ? targetRect.top - CARD_H - MARGIN
+        : vh - CARD_H - 16
 
-    let top: number
-    if (spaceBelow >= CARD_H + MARGIN) {
-      top = targetRect.top + targetRect.height + MARGIN
-    } else if (spaceAbove >= CARD_H + MARGIN) {
-      top = targetRect.top - CARD_H - MARGIN
-    } else {
-      // not enough space above or below — anchor to bottom of viewport
-      top = vh - CARD_H - 16
-    }
-
-    const idealLeft = targetRect.left + targetRect.width / 2 - CARD_W / 2
-    const left = clamp(idealLeft, 12, vw - CARD_W - 12)
-
+    const left = clamp(targetRect.left + targetRect.width / 2 - CARD_W / 2, 12, vw - CARD_W - 12)
     setCardPos({ top: clamp(top, 8, vh - CARD_H - 8), left })
   }, [targetRect])
 
   /* close */
   function close() {
-    setActive(false)
-    setTargetRect(null)
-    setNavigating(false)
-    setCardPos(null)
+    setActive(false); setTargetRect(null); setNavigating(false); setCardPos(null)
     localStorage.setItem(STORAGE_KEY(userId), '1')
   }
 
   /* animated navigation */
   function goTo(idx: number) {
-    if (animating || idx < 0 || idx >= STEPS.length) return
+    if (animating || idx < 0 || idx >= STEP_CONFIGS.length) return
     setAnimDir(idx > stepIdx ? 'next' : 'prev')
     setAnimating(true)
-    setTimeout(() => {
-      setStepIdx(idx)
-      setTargetRect(null)
-      setCardPos(null)
-      setAnimating(false)
-    }, 180)
+    setTimeout(() => { setStepIdx(idx); setTargetRect(null); setCardPos(null); setAnimating(false) }, 180)
   }
 
   if (!active) return null
 
-  const TOTAL  = STEPS.length
+  const TOTAL  = STEP_CONFIGS.length
   const isLast = stepIdx === TOTAL - 1
   const vw = typeof window !== 'undefined' ? window.innerWidth  : 1440
   const vh = typeof window !== 'undefined' ? window.innerHeight : 900
   const cx = targetRect
     ? { x: targetRect.left, y: targetRect.top, w: targetRect.width, h: targetRect.height, r: 14 }
     : null
-
-  /* default card position (centered) when no targetRect yet */
-  const defaultPos = { top: vh / 2 - 230, left: vw / 2 - 170 }
-  const pos = cardPos ?? defaultPos
+  const pos = cardPos ?? { top: vh / 2 - 230, left: vw / 2 - 170 }
 
   return (
     <>
       <style>{`
         @keyframes gn-pulse-ring {
-          0%   { transform: scale(1);    opacity: .9; }
+          0%   { transform: scale(1);     opacity: .9; }
           50%  { transform: scale(1.035); opacity: .35; }
-          100% { transform: scale(1);    opacity: .9; }
+          100% { transform: scale(1);     opacity: .9; }
         }
         .gn-ring { animation: gn-pulse-ring 1.9s ease-in-out infinite; }
       `}</style>
 
-      {/* Overlay */}
       <div
         ref={overlayRef}
         className="fixed inset-0 z-[9900]"
@@ -336,18 +348,14 @@ export default function GuidedTour({
           <defs>
             <mask id="gn-cutout-mask">
               <rect width={vw} height={vh} fill="white" />
-              {cx && (
-                <rect x={cx.x} y={cx.y} width={cx.w} height={cx.h}
-                  rx={cx.r} ry={cx.r} fill="black" />
-              )}
+              {cx && <rect x={cx.x} y={cx.y} width={cx.w} height={cx.h} rx={cx.r} ry={cx.r} fill="black" />}
             </mask>
           </defs>
           <rect width={vw} height={vh} fill="rgba(0,0,0,0.65)" mask="url(#gn-cutout-mask)" />
           {cx && (
             <rect
               className="gn-ring"
-              x={cx.x - 3} y={cx.y - 3}
-              width={cx.w + 6} height={cx.h + 6}
+              x={cx.x - 3} y={cx.y - 3} width={cx.w + 6} height={cx.h + 6}
               rx={cx.r + 3} ry={cx.r + 3}
               fill="none" stroke="#9F1239" strokeWidth="2.5"
               style={{ transformOrigin: `${cx.x + cx.w / 2}px ${cx.y + cx.h / 2}px` }}
@@ -367,7 +375,7 @@ export default function GuidedTour({
           </div>
         )}
 
-        {/* Tour card — rich presentation */}
+        {/* Tour card */}
         {!navigating && (
           <div
             ref={cardRef}
@@ -376,7 +384,6 @@ export default function GuidedTour({
           >
             {/* Gradient header */}
             <div className={`bg-gradient-to-br ${step.gradient} px-6 pt-6 pb-7 relative`}>
-              {/* Close */}
               <button
                 onClick={close}
                 className="absolute top-3 right-3 text-white/40 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
@@ -385,28 +392,23 @@ export default function GuidedTour({
                 <Icon d={ICONS.close} size={15} />
               </button>
 
-              {/* Content — animated */}
               <div
                 className="transition-all duration-200"
                 style={{
                   opacity: animating ? 0 : 1,
-                  transform: animating
-                    ? (animDir === 'next' ? 'translateX(16px)' : 'translateX(-16px)')
-                    : 'none',
+                  transform: animating ? (animDir === 'next' ? 'translateX(16px)' : 'translateX(-16px)') : 'none',
                 }}
               >
                 <div className={`${step.iconBg} w-11 h-11 rounded-2xl flex items-center justify-center mb-3 text-white`}>
                   <Icon d={ICONS[step.icon]} size={22} />
                 </div>
-                <p className="text-white/55 text-[10px] font-semibold uppercase tracking-widest mb-0.5">
-                  {step.subtitle}
-                </p>
+                <p className="text-white/55 text-[10px] font-semibold uppercase tracking-widest mb-0.5">{step.subtitle}</p>
                 <h2 className="text-white text-xl font-bold leading-tight">{step.title}</h2>
               </div>
 
               {/* Progress dots */}
               <div className="flex gap-1.5 mt-4">
-                {STEPS.map((_, i) => (
+                {STEP_CONFIGS.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => goTo(i)}
@@ -421,17 +423,13 @@ export default function GuidedTour({
             </div>
 
             {/* Body */}
-            <div
-              className="px-6 py-5 transition-all duration-200"
-              style={{ opacity: animating ? 0 : 1 }}
-            >
-              <p className="text-app-text text-sm leading-relaxed mb-4">{step.body}</p>
+            <div className="px-6 py-5 transition-all duration-200" style={{ opacity: animating ? 0 : 1 }}>
+              <p className="text-app-text text-sm leading-relaxed mb-4">{step.bodyText}</p>
 
-              {/* Numbered tips */}
               <ul className="space-y-2.5">
-                {step.tips.map((tip, i) => (
+                {step.tipsText.map((tip, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <span className={`${step.dot} ${step.dotText} text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                    <span className={`${step.dot} text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5`}>
                       {i + 1}
                     </span>
                     <span className="text-[13px] text-app-text2 leading-snug">{tip}</span>
@@ -449,11 +447,7 @@ export default function GuidedTour({
               >
                 ← Anterior
               </button>
-
-              <span className="text-[11px] text-app-text3 font-mono tabular-nums">
-                {stepIdx + 1} / {TOTAL}
-              </span>
-
+              <span className="text-[11px] text-app-text3 font-mono tabular-nums">{stepIdx + 1} / {TOTAL}</span>
               {isLast ? (
                 <button
                   onClick={close}

@@ -81,7 +81,7 @@ export default function WelcomeModal({
 
           {/* Logo */}
           <div className="relative flex justify-center mb-5">
-            <div className="rounded-2xl p-3.5" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(4px)' }}>
+            <div style={{ mixBlendMode: 'lighten' }}>
               <GrapesNutsLogo size="md" />
             </div>
           </div>

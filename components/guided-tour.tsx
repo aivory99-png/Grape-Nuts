@@ -357,7 +357,7 @@ export default function GuidedTour({
 
               <div className="relative">
                 <div className="flex justify-center mb-5">
-                  <div className="rounded-2xl p-3.5" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                  <div style={{ mixBlendMode: 'lighten' }}>
                     <GrapesNutsLogo size="md" />
                   </div>
                 </div>

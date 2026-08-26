@@ -825,7 +825,7 @@ export default function StockListClient({
                     <input type="number" value={mVolumeMl} onChange={e => setMVolumeMl(e.target.value)} placeholder="750" className={inp} />
                   </div>
                   <div>
-                    <label className="text-[9px] font-semibold text-app-text2 block mb-0.5">{lang === 'pt' ? 'Bot/cx' : 'Bot/cj'}</label>
+                    <label className="text-[9px] font-semibold text-app-text2 block mb-0.5">{lang === 'pt' ? 'Garrafas por caixa' : 'Botellas por caja'}</label>
                     <input type="number" value={mBpc} onChange={e => setMBpc(e.target.value)} placeholder="6" className={inp} />
                   </div>
                   <div className="col-span-3">

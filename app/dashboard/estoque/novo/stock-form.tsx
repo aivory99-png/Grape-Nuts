@@ -343,7 +343,7 @@ export default function StockForm({
               value={qty} onChange={(e) => setQty(e.target.value)} />
           </div>
           <div>
-            <label className={lbl}>{lang === 'pt' ? 'Garrafas/caixa' : 'Botellas/caja'}</label>
+            <label className={lbl}>{lang === 'pt' ? 'Garrafas por caixa' : 'Botellas por caja'}</label>
             <input type="number" className={inp} placeholder="6" min="1"
               value={bottlesPerCase} onChange={(e) => setBottlesPerCase(e.target.value)} />
           </div>

@@ -287,17 +287,33 @@ export default function GuidedTour({
   /* position tooltip */
   useEffect(() => {
     if (!targetRect || !cardRef.current) { setCardPos(null); return }
-    const CARD_W = 340, MARGIN = 14
-    const CARD_H = cardRef.current.offsetHeight || 460
     const vw = window.innerWidth, vh = window.innerHeight
-    const below = vh - (targetRect.top + targetRect.height)
-    const above = targetRect.top
-    const top = below >= CARD_H + MARGIN
-      ? targetRect.top + targetRect.height + MARGIN
-      : above >= CARD_H + MARGIN
-        ? targetRect.top - CARD_H - MARGIN
-        : vh - CARD_H - 16
-    const left = clamp(targetRect.left + targetRect.width / 2 - CARD_W / 2, 12, vw - CARD_W - 12)
+    const CARD_W = Math.min(340, vw - 24)
+    const MARGIN = 14
+    const CARD_H = cardRef.current.offsetHeight || 420
+    const below  = vh - (targetRect.top + targetRect.height)
+    const above  = targetRect.top
+    const toRight = vw - (targetRect.left + targetRect.width)
+    const toLeft  = targetRect.left
+    const centerH = clamp(targetRect.left + targetRect.width / 2 - CARD_W / 2, 12, vw - CARD_W - 12)
+    let top: number, left: number
+    if (below >= CARD_H + MARGIN) {
+      top  = targetRect.top + targetRect.height + MARGIN
+      left = centerH
+    } else if (above >= CARD_H + MARGIN) {
+      top  = targetRect.top - CARD_H - MARGIN
+      left = centerH
+    } else if (toRight >= CARD_W + MARGIN) {
+      left = targetRect.left + targetRect.width + MARGIN
+      top  = clamp(targetRect.top + targetRect.height / 2 - CARD_H / 2, 8, vh - CARD_H - 8)
+    } else if (toLeft >= CARD_W + MARGIN) {
+      left = targetRect.left - CARD_W - MARGIN
+      top  = clamp(targetRect.top + targetRect.height / 2 - CARD_H / 2, 8, vh - CARD_H - 8)
+    } else {
+      // element fills most of screen — center card over it
+      top  = clamp(vh / 2 - CARD_H / 2, 8, vh - CARD_H - 8)
+      left = clamp(vw / 2 - CARD_W / 2, 12, vw - CARD_W - 12)
+    }
     setCardPos({ top: clamp(top, 8, vh - CARD_H - 8), left })
   }, [targetRect])
 

@@ -157,7 +157,7 @@ export default function SalesForm({
   const lbl = 'block text-xs font-semibold text-app-text2 mb-1.5'
 
   return (
-    <form data-tour="sales-form" onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {/* Client + Seller + Date */}
       <div className="bg-white rounded-2xl border border-app-border p-5 space-y-4">
         <h2 className="text-sm font-semibold text-app-text">{t('sale_client', lang)}</h2>
@@ -331,7 +331,7 @@ export default function SalesForm({
       </div>
 
       {/* Payment */}
-      <div className="bg-white rounded-2xl border border-app-border p-5 space-y-4">
+      <div data-tour="sales-form" className="bg-white rounded-2xl border border-app-border p-5 space-y-4">
         <h2 className="text-sm font-semibold text-app-text">{t('sale_payment', lang)}</h2>
         <div className="grid grid-cols-2 gap-3">
           <div>

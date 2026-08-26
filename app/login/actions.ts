@@ -1,7 +1,7 @@
 'use server'
 
 import { createServerClient } from '@supabase/ssr'
-import { cookies, headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 async function makeClient() {
@@ -36,6 +36,7 @@ export async function login(_state: unknown, formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) {
+    console.error('[auth] login error:', error.code)
     return { error: 'Email ou senha incorretos. / Email o contraseña incorrectos.' }
   }
 
@@ -54,13 +55,13 @@ export async function register(_state: unknown, formData: FormData) {
   const confirm = formData.get('confirm') as string
 
   if (!email || !password) return { error: 'Completa todos los campos.' }
-  if (password.length < 6) return { error: 'La contraseña debe tener al menos 6 caracteres.' }
+  if (password.length < 8) return { error: 'La contraseña debe tener al menos 6 caracteres.' }
   if (password !== confirm) return { error: 'Las contraseñas no coinciden.' }
 
   const supabase = await makeClient()
   const { error } = await supabase.auth.signUp({ email, password })
 
-  if (error) return { error: error.message }
+  if (error) { console.error('[auth] signUp error:', error.code); return { error: 'Não foi possível criar a conta. Tente novamente.' } }
   // Return success so the client can redirect (avoids stream conflict with redirect())
   return { success: true }
 }
@@ -69,14 +70,12 @@ export async function resetPassword(_state: unknown, formData: FormData) {
   const email = formData.get('email') as string
   if (!email) return { error: 'Ingresa tu email.' }
 
-  const hdrs = await headers()
-  const origin = hdrs.get('origin') ?? hdrs.get('x-forwarded-host') ?? 'http://localhost:3000'
-  const redirectTo = `${origin}/update-password`
+  const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/update-password`
 
   const supabase = await makeClient()
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
 
-  if (error) return { error: error.message }
+  if (error) { console.error('[auth] resetPassword error:', error.code); return { error: 'Não foi possível enviar o email de recuperação.' } }
   return { success: true }
 }
 
@@ -85,12 +84,12 @@ export async function updatePassword(_state: unknown, formData: FormData) {
   const confirm = formData.get('confirm') as string
 
   if (!password) return { error: 'Ingresa una nueva contraseña.' }
-  if (password.length < 6) return { error: 'La contraseña debe tener al menos 6 caracteres.' }
+  if (password.length < 8) return { error: 'La contraseña debe tener al menos 6 caracteres.' }
   if (password !== confirm) return { error: 'Las contraseñas no coinciden.' }
 
   const supabase = await makeClient()
   const { error } = await supabase.auth.updateUser({ password })
 
-  if (error) return { error: error.message }
+  if (error) { console.error('[auth] updatePassword error:', error.code); return { error: 'Não foi possível atualizar a senha. Tente novamente.' } }
   return { success: true }
 }

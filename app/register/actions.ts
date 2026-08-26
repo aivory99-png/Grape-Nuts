@@ -14,8 +14,8 @@ export async function register(_state: unknown, formData: FormData) {
     return { error: 'Preencha todos os campos. / Completa todos los campos.' }
   }
 
-  if (password.length < 6) {
-    return { error: 'A senha precisa ter ao menos 6 caracteres.' }
+  if (password.length < 8) {
+    return { error: 'A senha precisa ter ao menos 8 caracteres.' }
   }
 
   const admin = createAdminClient(
@@ -37,7 +37,7 @@ export async function register(_state: unknown, formData: FormData) {
     ) {
       return { error: 'Este email já está cadastrado. / Este email ya está registrado.' }
     }
-    return { error: `Erro ao criar conta: ${createError.message}` }
+    return { error: 'Erro ao criar conta. Tente novamente.' }
   }
 
   if (!created.user) {

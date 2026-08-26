@@ -27,6 +27,17 @@ export async function updateStockEntry(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autenticado.' }
 
+  const orgId = await getOrgId()
+  if (!orgId) return { error: 'Organização não encontrada.' }
+
+  // Verify entry belongs to caller's organization before using admin client (CN-003)
+  const { data: entryCheck } = await admin()
+    .from('stock_entries')
+    .select('organization_id')
+    .eq('id', id)
+    .single()
+  if (entryCheck?.organization_id !== orgId) return { error: 'Acesso negado.' }
+
   const { error } = await admin()
     .from('stock_entries')
     .update({
@@ -37,7 +48,7 @@ export async function updateStockEntry(
     })
     .eq('id', id)
 
-  if (error) { console.error(error); return { error: error.message } }
+  if (error) { console.error(error); return { error: 'Erro ao atualizar entrada.' } }
 
   if (data.wineId !== undefined) {
     await admin()
@@ -74,6 +85,11 @@ export async function addRestockEntry(
 
   if (!existing) return { error: 'Entrada não encontrada.' }
 
+  // Verify entry belongs to caller's organization (CN-003)
+  if (existing.organization_id && existing.organization_id !== orgId) {
+    return { error: 'Acesso negado.' }
+  }
+
   // If price hasn't changed, add to existing entry instead of creating a new row
   const priceMatches =
     existing.purchase_price === data.purchase_price &&
@@ -88,7 +104,7 @@ export async function addRestockEntry(
         qty_remaining: existing.qty_remaining + data.qty,
       })
       .eq('id', existingEntryId)
-    if (error) { console.error(error); return { error: error.message } }
+    if (error) { console.error(error); return { error: 'Erro ao atualizar entrada.' } }
     revalidatePath('/dashboard/estoque')
     return { success: true }
   }
@@ -105,7 +121,7 @@ export async function addRestockEntry(
     purchase_date:    data.purchase_date,
   })
 
-  if (error) { console.error(error); return { error: error.message } }
+  if (error) { console.error(error); return { error: 'Erro ao criar entrada.' } }
   revalidatePath('/dashboard/estoque')
   return { success: true }
 }
@@ -113,6 +129,21 @@ export async function addRestockEntry(
 export async function getStockEntryDependencies(
   id: string
 ): Promise<{ orderItemCount: number }> {
+  // Authentication and ownership check (CN-002)
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { orderItemCount: 0 }
+
+  const orgId = await getOrgId()
+  if (!orgId) return { orderItemCount: 0 }
+
+  const { data: entryCheck } = await admin()
+    .from('stock_entries')
+    .select('organization_id')
+    .eq('id', id)
+    .single()
+  if (entryCheck?.organization_id !== orgId) return { orderItemCount: 0 }
+
   const { count } = await admin()
     .from('order_items')
     .select('id', { count: 'exact', head: true })
@@ -127,18 +158,24 @@ export async function deleteStockEntry(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autenticado.' }
 
-  // Fetch the wine_id before deleting so we can clean up the wine record too
+  const orgId = await getOrgId()
+  if (!orgId) return { error: 'Organização não encontrada.' }
+
+  // Fetch entry and verify ownership before deleting (CN-003)
   const { data: entry } = await admin()
     .from('stock_entries')
-    .select('wine_id')
+    .select('wine_id, organization_id')
     .eq('id', id)
     .single()
+
+  if (!entry) return { error: 'Entrada não encontrada.' }
+  if (entry.organization_id !== orgId) return { error: 'Acesso negado.' }
 
   // Delete associated order_items first (cascade)
   await admin().from('order_items').delete().eq('stock_entry_id', id)
 
   const { error } = await admin().from('stock_entries').delete().eq('id', id)
-  if (error) { console.error('deleteStockEntry error:', error); return { error: error.message } }
+  if (error) { console.error('deleteStockEntry error:', error); return { error: 'Erro ao excluir entrada.' } }
 
   // If no other stock entries reference this wine, delete the wine too
   if (entry?.wine_id) {

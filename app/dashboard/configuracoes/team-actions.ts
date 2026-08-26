@@ -21,10 +21,13 @@ export async function inviteTeamMember(data: {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autenticado.' }
 
-  // Check caller is admin
+  // Fetch caller's role and organization_id together
   const { data: profile } = await supabase
-    .from('user_profiles').select('role').eq('id', user.id).single()
+    .from('user_profiles').select('role, organization_id').eq('id', user.id).single()
   if (profile?.role !== 'admin') return { error: 'Solo el admin puede invitar.' }
+
+  const orgId = profile?.organization_id
+  if (!orgId) return { error: 'Organização não encontrada.' }
 
   const admin = getAdmin()
 
@@ -40,7 +43,8 @@ export async function inviteTeamMember(data: {
     if (inviteError.message.includes('already')) {
       return { error: 'Este email ya está registrado.' }
     }
-    return { error: `Error: ${inviteError.message}` }
+    console.error(inviteError)
+    return { error: 'Erro ao convidar membro.' }
   }
 
   if (invited.user) {
@@ -50,6 +54,7 @@ export async function inviteTeamMember(data: {
       email: data.email,
       role: data.role,
       permissions: data.permissions,
+      organization_id: orgId,  // CN-008: assign invited member to caller's org
     }, { onConflict: 'id' })
   }
 
@@ -66,17 +71,26 @@ export async function updateMemberPermissions(data: {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autenticado.' }
 
+  // Fetch caller's role and organization_id together
   const { data: profile } = await supabase
-    .from('user_profiles').select('role').eq('id', user.id).single()
+    .from('user_profiles').select('role, organization_id').eq('id', user.id).single()
   if (profile?.role !== 'admin') return { error: 'Solo el admin puede editar permisos.' }
 
+  const orgId = profile?.organization_id
+  if (!orgId) return { error: 'Organização não encontrada.' }
+
+  // Verify target user belongs to same organization (CN-007)
   const admin = getAdmin()
+  const { data: targetProfile } = await admin
+    .from('user_profiles').select('organization_id').eq('id', data.userId).single()
+  if (targetProfile?.organization_id !== orgId) return { error: 'Acesso negado.' }
+
   const { error } = await admin.from('user_profiles').update({
     role: data.role,
     permissions: data.permissions,
   }).eq('id', data.userId)
 
-  if (error) return { error: 'Error al actualizar permisos.' }
+  if (error) { console.error(error); return { error: 'Erro ao atualizar permissões.' } }
   revalidatePath('/dashboard/configuracoes')
   return { success: true }
 }
@@ -87,11 +101,20 @@ export async function removeMember(userId: string): Promise<{ success?: boolean;
   if (!user) return { error: 'No autenticado.' }
   if (user.id === userId) return { error: 'No puedes eliminarte a ti mismo.' }
 
+  // Fetch caller's role and organization_id together
   const { data: profile } = await supabase
-    .from('user_profiles').select('role').eq('id', user.id).single()
+    .from('user_profiles').select('role, organization_id').eq('id', user.id).single()
   if (profile?.role !== 'admin') return { error: 'Solo el admin puede eliminar usuarios.' }
 
+  const orgId = profile?.organization_id
+  if (!orgId) return { error: 'Organização não encontrada.' }
+
+  // Verify target user belongs to same organization (CN-007)
   const admin = getAdmin()
+  const { data: targetProfile } = await admin
+    .from('user_profiles').select('organization_id').eq('id', userId).single()
+  if (targetProfile?.organization_id !== orgId) return { error: 'Acesso negado.' }
+
   await admin.auth.admin.deleteUser(userId)
   revalidatePath('/dashboard/configuracoes')
   return { success: true }

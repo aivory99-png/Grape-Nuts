@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getOrgId } from '@/lib/get-org-id'
 import { revalidatePath } from 'next/cache'
 
 export async function markOrderShipped(formData: FormData) {
@@ -8,10 +9,18 @@ export async function markOrderShipped(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
 
+  const orgId = await getOrgId()
+  if (!orgId) return
+
   const orderId   = formData.get('order_id') as string
   const company   = formData.get('company') as string
   const tracking  = formData.get('tracking') as string
   const priceStr  = formData.get('price') as string
+
+  // Verify order belongs to caller's org before mutating (CN-R02)
+  const { data: orderCheck } = await supabase
+    .from('orders').select('id').eq('id', orderId).eq('organization_id', orgId).single()
+  if (!orderCheck) return
 
   await supabase.from('deliveries').upsert({
     order_id:       orderId,
@@ -20,7 +29,7 @@ export async function markOrderShipped(formData: FormData) {
     price:          priceStr ? parseFloat(priceStr) : 0,
   }, { onConflict: 'order_id' })
 
-  await supabase.from('orders').update({ status: 'shipped' }).eq('id', orderId)
+  await supabase.from('orders').update({ status: 'shipped' }).eq('id', orderId).eq('organization_id', orgId)
 
   revalidatePath('/dashboard/cobrancas')
   revalidatePath('/dashboard')
@@ -31,7 +40,19 @@ export async function markPaymentPaid(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
 
+  const orgId = await getOrgId()
+  if (!orgId) return
+
   const paymentId = formData.get('payment_id') as string
+
+  // Verify payment belongs to caller's org via its order (CN-R02)
+  const { data: payment } = await supabase
+    .from('payments').select('order_id').eq('id', paymentId).single()
+  if (!payment?.order_id) return
+
+  const { data: orderCheck } = await supabase
+    .from('orders').select('id').eq('id', payment.order_id).eq('organization_id', orgId).single()
+  if (!orderCheck) return
 
   await supabase.from('payments').update({
     status:  'paid',
@@ -39,15 +60,10 @@ export async function markPaymentPaid(formData: FormData) {
   }).eq('id', paymentId)
 
   // If all payments for the order are paid, mark order as paid
-  const { data: payment } = await supabase
-    .from('payments').select('order_id').eq('id', paymentId).single()
-
-  if (payment?.order_id) {
-    const { data: remaining } = await supabase
-      .from('payments').select('id').eq('order_id', payment.order_id).eq('status', 'pending')
-    if (!remaining?.length) {
-      await supabase.from('orders').update({ status: 'paid' }).eq('id', payment.order_id)
-    }
+  const { data: remaining } = await supabase
+    .from('payments').select('id').eq('order_id', payment.order_id).eq('status', 'pending')
+  if (!remaining?.length) {
+    await supabase.from('orders').update({ status: 'paid' }).eq('id', payment.order_id).eq('organization_id', orgId)
   }
 
   revalidatePath('/dashboard/cobrancas')
@@ -61,11 +77,15 @@ export async function updateOrderValues(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
+  const orgId = await getOrgId()
+  if (!orgId) return
   const update: Record<string, unknown> = {}
   if (data.total_revenue !== undefined) update.total_revenue = data.total_revenue
   if (data.payment_type  !== undefined) update.payment_type  = data.payment_type
   if (data.order_date    !== undefined) update.order_date    = data.order_date
-  if (Object.keys(update).length) await supabase.from('orders').update(update).eq('id', orderId)
+  if (Object.keys(update).length) {
+    await supabase.from('orders').update(update).eq('id', orderId).eq('organization_id', orgId)
+  }
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/cobrancas')
 }
@@ -78,8 +98,10 @@ export async function updateOrderStatus(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
+  const orgId = await getOrgId()
+  if (!orgId) return
 
-  await supabase.from('orders').update({ status }).eq('id', orderId)
+  await supabase.from('orders').update({ status }).eq('id', orderId).eq('organization_id', orgId)
 
   if (status === 'paid' && paymentId) {
     await supabase.from('payments').update({
@@ -104,6 +126,17 @@ export async function updatePaymentDue(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
+  const orgId = await getOrgId()
+  if (!orgId) return
+
+  // Verify payment belongs to caller's org via its order (CN-R02)
+  const { data: payment } = await supabase
+    .from('payments').select('order_id').eq('id', paymentId).single()
+  if (!payment?.order_id) return
+  const { data: orderCheck } = await supabase
+    .from('orders').select('id').eq('id', payment.order_id).eq('organization_id', orgId).single()
+  if (!orderCheck) return
+
   const update: Record<string, unknown> = {}
   if (data.due_date !== undefined) update.due_date = data.due_date || null
   if (data.amount   !== undefined) update.amount   = data.amount

@@ -22,9 +22,12 @@ export async function setupAdmin(_state: unknown, formData: FormData) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   )
 
-  // Check if any admin already exists
-  const { data: existing } = await admin.from('user_profiles').select('id').eq('role', 'admin').limit(1)
-  if (existing && existing.length > 0) {
+  // Atomically claim the setup slot — PK unique constraint prevents double-setup (CN-013)
+  const { error: claimError } = await admin
+    .from('global_settings')
+    .insert({ key: 'setup_complete', value: 'true' })
+
+  if (claimError) {
     return { error: 'El sistema ya tiene un administrador. Inicia sesión.' }
   }
 
@@ -37,7 +40,10 @@ export async function setupAdmin(_state: unknown, formData: FormData) {
   })
 
   if (createError) {
-    return { error: `Error: ${createError.message}` }
+    console.error('setupAdmin createUser error:', createError)
+    // Rollback the setup claim so setup can be retried
+    await admin.from('global_settings').delete().eq('key', 'setup_complete')
+    return { error: 'Error al crear la cuenta. Inténtalo de nuevo.' }
   }
   if (!created.user) {
     return { error: 'Error al crear la cuenta. Inténtalo de nuevo.' }

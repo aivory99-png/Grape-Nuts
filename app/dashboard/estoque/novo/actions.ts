@@ -159,6 +159,17 @@ export async function updateFullEntry(
   if (!ctx) return { error: 'Organização não encontrada.' }
 
   const admin = adminClient()
+
+  // Verify the stock entry belongs to the caller's organization before mutating (CN-004)
+  const { data: entryOwnerCheck } = await admin
+    .from('stock_entries')
+    .select('organization_id, wine_id')
+    .eq('id', entryId)
+    .single()
+  if (!entryOwnerCheck || entryOwnerCheck.organization_id !== ctx.orgId) {
+    return { error: 'Acesso negado.' }
+  }
+
   const newQty = data.qty_remaining ? parseInt(data.qty_remaining) : 0
   const newQtyPurchased = data.qty_purchased ? parseInt(data.qty_purchased) : undefined
 

@@ -3,6 +3,14 @@
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+import { getOrgId } from '@/lib/get-org-id'
+
+function adminClient() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+}
 
 export async function updateProfile(data: {
   name: string
@@ -24,7 +32,7 @@ export async function updateProfile(data: {
 
   if (error) {
     console.error(error)
-    return { error: error.message }
+    return { error: 'Erro ao atualizar perfil.' }
   }
 
   revalidatePath('/dashboard/configuracoes')
@@ -41,10 +49,17 @@ export async function updateSeller(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autenticado.' }
 
-  const admin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
+  const orgId = await getOrgId()
+  if (!orgId) return { error: 'Organização não encontrada.' }
+
+  // Verify target seller belongs to caller's organization (CN-006)
+  const admin = adminClient()
+  const { data: sellerProfile } = await admin
+    .from('user_profiles')
+    .select('organization_id')
+    .eq('id', sellerId)
+    .single()
+  if (sellerProfile?.organization_id !== orgId) return { error: 'Acesso negado.' }
 
   const [profileRes, metaRes] = await Promise.all([
     admin.from('user_profiles').update({ name: name.trim() }).eq('id', sellerId),
@@ -55,7 +70,7 @@ export async function updateSeller(
 
   if (profileRes.error) {
     console.error(profileRes.error)
-    return { error: profileRes.error.message }
+    return { error: 'Erro ao atualizar vendedor.' }
   }
   if (metaRes.error) {
     console.error(metaRes.error)
@@ -71,10 +86,17 @@ export async function deleteSeller(sellerId: string): Promise<{ success?: boolea
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autenticado.' }
 
-  const admin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
+  const orgId = await getOrgId()
+  if (!orgId) return { error: 'Organização não encontrada.' }
+
+  // Verify target seller belongs to caller's organization (CN-006)
+  const admin = adminClient()
+  const { data: sellerProfile } = await admin
+    .from('user_profiles')
+    .select('organization_id')
+    .eq('id', sellerId)
+    .single()
+  if (sellerProfile?.organization_id !== orgId) return { error: 'Acesso negado.' }
 
   const { error } = await admin
     .from('user_profiles')
@@ -83,7 +105,7 @@ export async function deleteSeller(sellerId: string): Promise<{ success?: boolea
 
   if (error) {
     console.error(error)
-    return { error: error.message }
+    return { error: 'Erro ao desativar vendedor.' }
   }
 
   revalidatePath('/dashboard/configuracoes')

@@ -78,7 +78,7 @@ export async function createOrder(data: {
 
     if (orderError || !order) {
       console.error('orders insert error:', orderError)
-      return { error: `Erro ao criar pedido: ${orderError?.message ?? 'sem resposta'}` }
+      return { error: 'Erro ao criar pedido.' }
     }
 
     // Create order items (quantities and prices stored in bottles)
@@ -95,7 +95,7 @@ export async function createOrder(data: {
 
     if (itemsError) {
       console.error('order_items insert error:', itemsError)
-      return { error: `Erro ao salvar itens: ${itemsError.message}` }
+      return { error: 'Erro ao salvar itens.' }
     }
 
     // Decrement stock in bottles
@@ -161,6 +161,9 @@ export async function updateOrder(data: {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Não autenticado.' }
+
+    const orgId = await getOrgId()
+    if (!orgId) return { error: 'Organização não encontrada.' }
 
     // 1. Fetch current items to restore stock
     const { data: currentItems } = await supabase
@@ -241,8 +244,8 @@ export async function updateOrder(data: {
       total_revenue:    totalRevenue,
       notes:            data.notes || null,
       order_date:       data.orderDate,
-    }).eq('id', data.orderId)
-    if (orderErr) return { error: `Erro ao atualizar pedido: ${orderErr.message}` }
+    }).eq('id', data.orderId).eq('organization_id', orgId)
+    if (orderErr) return { error: 'Erro ao atualizar pedido.' }
 
     // 8. Update pending payment amount + due date
     const daysOffset = data.paymentTerm === '30_dias' ? 30 : data.paymentTerm === '60_dias' ? 60 : 0
@@ -280,6 +283,9 @@ export async function deleteOrder(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Não autenticado.' }
 
+    const orgId = await getOrgId()
+    if (!orgId) return { error: 'Organização não encontrada.' }
+
     // 1. Fetch current items to restore stock
     const { data: currentItems } = await supabase
       .from('order_items')
@@ -310,8 +316,8 @@ export async function deleteOrder(
     await supabase.from('deliveries').delete().eq('order_id', orderId)
 
     // 6. Delete order
-    const { error: orderErr } = await supabase.from('orders').delete().eq('id', orderId)
-    if (orderErr) return { error: `Erro ao eliminar pedido: ${orderErr.message}` }
+    const { error: orderErr } = await supabase.from('orders').delete().eq('id', orderId).eq('organization_id', orgId)
+    if (orderErr) return { error: 'Erro ao eliminar pedido.' }
 
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/vendas')

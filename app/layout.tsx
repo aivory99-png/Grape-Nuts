@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Playfair_Display } from 'next/font/google'
+import { headers } from 'next/headers'
 import { getTheme } from '@/lib/theme'
 import './globals.css'
 
@@ -17,7 +18,10 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: LayoutProps<'/'>) {
-  const theme = await getTheme()
+  const [theme, hdrs] = await Promise.all([getTheme(), headers()])
+  // Nonce generated per-request in middleware.ts for nonce-based CSP (CN-R05).
+  // Pass it to any <Script nonce={nonce}> or inline scripts that need it.
+  const nonce = hdrs.get('x-nonce') ?? undefined
   return (
     <html
       lang="pt-BR"

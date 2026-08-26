@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getOrgId } from '@/lib/get-org-id'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -20,6 +21,9 @@ export async function updateClient(id: string, data: {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autenticado.' }
 
+  const orgId = await getOrgId()
+  if (!orgId) return { error: 'Organização não encontrada.' }
+
   const dbType = data.is_prospect ? 'prospect' : (data.client_type || null)
 
   const { error } = await supabase.from('clients').update({
@@ -33,7 +37,7 @@ export async function updateClient(id: string, data: {
     responsible_id: data.responsible_id || null,
     notes: data.notes || null,
     updated_at: new Date().toISOString(),
-  }).eq('id', id)
+  }).eq('id', id).eq('organization_id', orgId)
 
   if (error) {
     console.error(error)
@@ -50,7 +54,10 @@ export async function deleteClient(id: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
 
-  await supabase.from('clients').update({ active: false }).eq('id', id)
+  const orgId = await getOrgId()
+  if (!orgId) return
+
+  await supabase.from('clients').update({ active: false }).eq('id', id).eq('organization_id', orgId)
   revalidatePath('/dashboard/clientes')
   redirect('/dashboard/clientes')
 }

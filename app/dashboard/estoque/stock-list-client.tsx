@@ -1482,14 +1482,12 @@ function ListView({
                 {/* Total Comprado */}
                 <td className="px-3 py-2.5 text-right">
                   <div className="text-[10px] text-app-text3">total</div>
-                  <div className="text-xs font-mono font-semibold text-app-text tabular-nums">{totCxPurchased} cx</div>
-                  <div className="text-xs font-mono font-semibold text-app-text3 tabular-nums">{totQtyPurchased} bt</div>
+                  <div className="text-xs font-mono font-semibold text-app-text tabular-nums">{totCxPurchased} cx · {totQtyPurchased} bt</div>
                 </td>
                 {/* Total Disponible */}
                 <td className="px-3 py-2.5 text-right">
                   <div className="text-[10px] text-app-text3">total</div>
-                  <div className="text-xs font-mono font-semibold text-emerald-600 tabular-nums">{totCxRemaining} cx</div>
-                  <div className="text-xs font-mono font-semibold text-app-text3 tabular-nums">{totQtyRemaining} bt</div>
+                  <div className="text-xs font-mono font-semibold text-emerald-600 tabular-nums">{totCxRemaining} cx · {totQtyRemaining} bt</div>
                 </td>
                 {/* Min */}
                 <td className="px-3 py-2.5" />

@@ -1,26 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /* Brand colors — Grapes & Nuts magenta */
+  --color-wine-50: #fdf0fb;
+  --color-wine-100: #fce0f8;
+  --color-wine-200: #f9b3ee;
+  --color-wine-400: #d94ec0;
+  --color-wine-500: #c038a8;
+  --color-wine-600: #a02890;
+  --color-wine-700: #7e1e70;
+  --color-wine-900: #400e3a;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-gold-50: #fffbf0;
+  --color-gold-100: #fef3c7;
+  --color-gold-200: #fde68a;
+  --color-gold-500: #c8920a;
+  --color-gold-600: #9a6c10;
+  --color-gold-700: #7a540d;
+
+  /* Semantic — light (default) */
+  --color-app-bg: #f4f6f8;
+  --color-app-surface: #ffffff;
+  --color-app-border: #e2e6ec;
+  --color-app-text: #111827;
+  --color-app-text2: #4b5563;
+  --color-app-text3: #9ca3af;
+
+  /* Fonts */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-playfair);
 }
 
+/* ── Dark mode tokens ── */
+:root[data-theme="dark"] {
+  --color-app-bg: #0e0e16;
+  --color-app-surface: #18181f;
+  --color-app-border: #2a2a38;
+  --color-app-text: #eeeef5;
+  --color-app-text2: #9898b0;
+  --color-app-text3: #55556a;
+}
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme="light"]) {
+    --color-app-bg: #0e0e16;
+    --color-app-surface: #18181f;
+    --color-app-border: #2a2a38;
+    --color-app-text: #eeeef5;
+    --color-app-text2: #9898b0;
+    --color-app-text3: #55556a;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-app-bg);
+  color: var(--color-app-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Dark mode surface overrides */
+:root[data-theme="dark"] .bg-white,
+:root:not([data-theme="light"]):is(.bg-white) {
+  background-color: var(--color-app-surface);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .bg-white {
+    background-color: var(--color-app-surface);
+  }
+}
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea {
+  background-color: var(--color-app-surface);
+  border-color: var(--color-app-border);
+  color: var(--color-app-text);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) input,
+  :root:not([data-theme="light"]) select,
+  :root:not([data-theme="light"]) textarea {
+    background-color: var(--color-app-surface);
+    border-color: var(--color-app-border);
+    color: var(--color-app-text);
+    color-scheme: dark;
+  }
+}
+
+/* Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-app-border) transparent;
 }

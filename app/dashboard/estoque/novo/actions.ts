@@ -144,6 +144,7 @@ export async function updateFullEntry(
     volume_ml: string
     bottles_per_case: string
     characteristics: string
+    qty_purchased?: string
     qty_remaining: string
     purchase_price: string
     list_price: string
@@ -159,6 +160,7 @@ export async function updateFullEntry(
 
   const admin = adminClient()
   const newQty = data.qty_remaining ? parseInt(data.qty_remaining) : 0
+  const newQtyPurchased = data.qty_purchased ? parseInt(data.qty_purchased) : undefined
 
   const wineUpdate: Record<string, unknown> = {
     name:             data.wine_name,
@@ -180,6 +182,7 @@ export async function updateFullEntry(
   const [wineResult, entryResult] = await Promise.all([
     admin.from('wines').update(wineUpdate).eq('id', wineId),
     admin.from('stock_entries').update({
+      ...(newQtyPurchased !== undefined ? { qty_purchased: newQtyPurchased } : {}),
       qty_remaining:    newQty,
       purchase_price:   parseFloat(data.purchase_price) || 0,
       list_price:       data.list_price ? parseFloat(data.list_price) : null,

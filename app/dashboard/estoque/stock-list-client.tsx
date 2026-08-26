@@ -306,7 +306,10 @@ export default function StockListClient({
     if (!editModalEntry?.wines) return
 
     const qtyAvailable = parseInt(mQty) || 0
-    if (qtyAvailable > editModalEntry.qty_purchased) {
+    const newTotalBottles = mBpc
+      ? (parseInt(mTotalCaixas) || 0) * (parseInt(mBpc) || 1)
+      : parseInt(mTotalCaixas) || 0
+    if (qtyAvailable > newTotalBottles) {
       setMError(lang === 'pt' ? 'Garrafas disponíveis não podem ser maiores que garrafas compradas!' : '¡Botellas disponibles no pueden ser mayores que botellas compradas!')
       return
     }
@@ -325,6 +328,7 @@ export default function StockListClient({
       volume_ml:        mVolumeMl,
       bottles_per_case: mBpc,
       characteristics:  mCharacteristics,
+      qty_purchased:    String(newTotalBottles),
       qty_remaining:    mQty,
       purchase_price:   mPurchasePrice,
       list_price:       mListPrice,

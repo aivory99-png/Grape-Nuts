@@ -22,13 +22,24 @@ export default function WelcomeModal({
   const [wineCount,   setWineCount]   = useState<number | null>(null)
   const [clientCount, setClientCount] = useState<number | null>(null)
 
-  /* show only if not seen yet */
+  /* show only if not seen yet — checks localStorage AND Supabase user_metadata */
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (!localStorage.getItem(storageKey(userId))) {
-      const t = setTimeout(() => setVisible(true), 500)
-      return () => clearTimeout(t)
-    }
+    // Fast path: localStorage already set
+    if (localStorage.getItem(storageKey(userId))) return
+
+    const sb = createClient()
+    sb.auth.getUser().then(({ data }) => {
+      const meta = data?.user?.user_metadata ?? {}
+      if (meta.gn_welcome_seen) {
+        // Backfill localStorage so next check is instant
+        try { localStorage.setItem(storageKey(userId), '1') } catch {}
+        return
+      }
+      const timer = setTimeout(() => setVisible(true), 500)
+      // eslint-disable-next-line consistent-return
+      return () => clearTimeout(timer)
+    })
   }, [userId])
 
   /* fetch real stats when modal becomes visible */
@@ -46,7 +57,9 @@ export default function WelcomeModal({
 
   function dismiss(startTour = false) {
     setLeaving(true)
-    if (typeof window !== 'undefined') localStorage.setItem(storageKey(userId), '1')
+    // Persist in localStorage (fast) + Supabase user_metadata (survives localStorage clears)
+    try { if (typeof window !== 'undefined') localStorage.setItem(storageKey(userId), '1') } catch {}
+    createClient().auth.updateUser({ data: { gn_welcome_seen: true } }).catch(() => {})
     onDismiss?.()
     setTimeout(() => {
       setVisible(false)

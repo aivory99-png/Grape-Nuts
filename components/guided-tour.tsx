@@ -351,7 +351,7 @@ export default function GuidedTour({
           style={{ background: 'rgba(10,5,18,0.85)', backdropFilter: 'blur(4px)' }}
         >
           <div
-            className="gn-fade-up w-full rounded-3xl shadow-2xl overflow-hidden bg-app-card"
+            className="gn-fade-up w-full rounded-3xl shadow-2xl overflow-hidden bg-app-surface"
             style={{ maxWidth: 480 }}
           >
             {/* Header */}
@@ -515,7 +515,7 @@ export default function GuidedTour({
         {/* Navigating */}
         {navigating && (
           <div className="absolute inset-0 flex items-center justify-center" style={{ pointerEvents: 'none' }}>
-            <div className="bg-white rounded-2xl shadow-2xl px-8 py-6 flex flex-col items-center gap-3 max-w-xs text-center">
+            <div className="bg-app-surface rounded-2xl shadow-2xl px-8 py-6 flex flex-col items-center gap-3 max-w-xs text-center">
               <div className="w-8 h-8 rounded-full border-2 border-wine-200 border-t-wine-600 animate-spin" />
               <p className="text-sm font-medium text-app-text">
                 A navegar para <span className="font-bold">{stepCfg.title}</span>…

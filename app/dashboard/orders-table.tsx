@@ -379,6 +379,7 @@ export default function OrdersTable({ rows: initialRows, lang }: { rows: OrderRo
               const isEditingRow = editing?.rowId === row.id
               const lucro = row.chargedValue - row.costValue
               const lucroPct = row.costValue > 0 ? Math.round((lucro / row.costValue) * 100) : null
+              const isOverdueDate = !row.paidDate && !!row.dueDate && new Date(row.dueDate + 'T12:00:00') < new Date()
 
               return (
                 <React.Fragment key={row.id}>
@@ -514,7 +515,7 @@ export default function OrdersTable({ rows: initialRows, lang }: { rows: OrderRo
                         <button
                           type="button"
                           onClick={() => row.paymentId && startEdit(row.id, 'dueDate', toInputDate(row.dueDate))}
-                          className="font-mono text-[11px] hover:text-wine-600 hover:underline cursor-text text-left w-full text-app-text2"
+                          className={`font-mono text-[11px] hover:text-wine-600 hover:underline cursor-text text-left w-full ${isOverdueDate ? 'text-red-500 font-semibold' : 'text-app-text2'}`}
                         >
                           {fmtDate(row.dueDate, lang)}
                         </button>

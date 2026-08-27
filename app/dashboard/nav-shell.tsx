@@ -158,7 +158,6 @@ export default function NavShell({
                 </div>
                 <div className="min-w-0 flex-1 text-left">
                   <div className="text-xs font-semibold text-app-text truncate leading-tight">{user.name}</div>
-                  <div className="text-[10px] text-app-text3 capitalize leading-tight">{user.role}</div>
                 </div>
                 <svg
                   xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"

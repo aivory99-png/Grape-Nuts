@@ -858,24 +858,28 @@ export default function StockListClient({
               {/* Precios */}
               <section className="bg-app-bg/50 rounded-xl p-3">
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-app-text3 mb-2">{lang === 'pt' ? 'Preços' : 'Precios'}</h3>
+                <div className="grid grid-cols-2 gap-2 mb-1">
+                  <label className="text-[9px] font-semibold text-app-text3 uppercase tracking-wide">{lang === 'pt' ? 'Preço garrafa' : 'Precio garrafa'}</label>
+                  <label className="text-[9px] font-semibold text-app-text3 uppercase tracking-wide">{lang === 'pt' ? 'Preço caixa' : 'Precio caixa'}</label>
+                </div>
                 <div className="space-y-2">
-                  <div><label className="text-[9px] font-semibold text-app-text2 block mb-1">{lang === 'pt' ? 'Compra' : 'Compra'}</label>
+                  <div><label className="text-[9px] font-semibold text-app-text2 block mb-1">{lang === 'pt' ? 'Preço compra' : 'Precio compra'}</label>
                     <div className="grid grid-cols-2 gap-2">
                       <input type="number" min={0} step="0.01" value={mBpc ? (parseFloat(mPurchasePrice) / parseInt(mBpc)).toString() : mPurchasePrice} onChange={e => {
                         const botPrice = parseFloat(e.target.value) || 0
                         const caixaPrice = mBpc ? (botPrice * parseInt(mBpc)).toFixed(2) : '0'
                         setMPurchasePrice(caixaPrice)
-                      }} placeholder={lang === 'pt' ? 'P/Bot' : 'P/Bot'} className={inp} />
+                      }} placeholder={lang === 'pt' ? 'P/Gf' : 'P/Bt'} className={inp} />
                       <input type="number" min={0} step="0.01" value={mPurchasePrice} onChange={e => setMPurchasePrice(e.target.value)} placeholder={lang === 'pt' ? 'P/Cx' : 'P/Cj'} className={inp} />
                     </div>
                   </div>
-                  <div><label className="text-[9px] font-semibold text-app-text2 block mb-1">{lang === 'pt' ? 'Venda' : 'Venta'}</label>
+                  <div><label className="text-[9px] font-semibold text-app-text2 block mb-1">{lang === 'pt' ? 'Preço venda' : 'Precio venta'}</label>
                     <div className="grid grid-cols-2 gap-2">
                       <input type="number" min={0} step="0.01" value={mListPrice ? (mBpc ? (parseFloat(mListPrice) / parseInt(mBpc)).toString() : mListPrice) : ''} onChange={e => {
                         const botPrice = parseFloat(e.target.value) || 0
                         const caixaPrice = mBpc ? (botPrice * parseInt(mBpc)).toFixed(2) : '0'
                         setMListPrice(caixaPrice)
-                      }} placeholder={lang === 'pt' ? 'P/Bot' : 'P/Bot'} className={inp} />
+                      }} placeholder={lang === 'pt' ? 'P/Gf' : 'P/Bt'} className={inp} />
                       <input type="number" min={0} step="0.01" value={mListPrice} onChange={e => setMListPrice(e.target.value)} placeholder={lang === 'pt' ? 'P/Cx' : 'P/Cj'} className={inp} />
                     </div>
                   </div>

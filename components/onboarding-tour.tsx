@@ -205,7 +205,7 @@ export default function OnboardingTour({
         className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
         style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(5px)' }}
       >
-        <div className="w-full max-w-sm bg-app-card rounded-3xl shadow-2xl overflow-hidden">
+        <div className="w-full max-w-sm bg-app-surface rounded-3xl shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-br from-wine-900 to-wine-700 px-8 pt-10 pb-8 text-center relative">
             <button
@@ -260,7 +260,7 @@ export default function OnboardingTour({
       style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(5px)' }}
       onClick={(e) => { if (e.target === e.currentTarget) close() }}
     >
-      <div className="relative w-full max-w-lg bg-app-card rounded-3xl shadow-2xl overflow-hidden" style={{ maxHeight: '90vh' }}>
+      <div className="relative w-full max-w-lg bg-app-surface rounded-3xl shadow-2xl overflow-hidden" style={{ maxHeight: '90vh' }}>
 
         {/* Gradient header */}
         <div className={`bg-gradient-to-br ${cur.color} px-8 pt-8 pb-10 relative`}>

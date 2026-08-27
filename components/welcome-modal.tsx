@@ -78,8 +78,7 @@ export default function WelcomeModal({
       style={{ background: 'rgba(10,5,18,0.82)', backdropFilter: 'blur(8px)' }}
     >
       <div
-        className={`w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden transition-all duration-320 ${leaving ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
-        style={{ background: 'var(--color-app-card, #fff)' }}
+        className={`w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden transition-all duration-320 bg-app-surface ${leaving ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
       >
         {/* ── Header ── */}
         <div

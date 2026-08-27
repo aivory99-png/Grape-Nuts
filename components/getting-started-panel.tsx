@@ -104,7 +104,7 @@ export default function GettingStartedPanel({
       />
 
       {/* Panel */}
-      <aside className="fixed top-0 right-0 bottom-0 z-50 w-80 bg-app-card border-l border-app-border flex flex-col shadow-2xl">
+      <aside className="fixed top-0 right-0 bottom-0 z-50 w-80 bg-app-surface border-l border-app-border flex flex-col shadow-2xl">
         {/* Header */}
         <div className="px-6 pt-6 pb-4 border-b border-app-border flex-shrink-0">
           <div className="flex items-center justify-between mb-3">

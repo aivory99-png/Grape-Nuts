@@ -69,7 +69,7 @@ export default function RevenueChart({
     v === 'wines' ? (lang === 'pt' ? 'Vinhos' : 'Vinos') : 'Clientes'
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-app-border bg-app-card flex flex-col md:flex-row" style={{ minHeight: 220 }}>
+    <div className="rounded-2xl overflow-hidden border border-app-border bg-app-surface flex flex-col md:flex-row" style={{ minHeight: 220 }}>
 
       {/* ── LEFT: KPI panel ── */}
       <div className="md:w-48 flex-shrink-0 bg-app-bg/60 border-b md:border-b-0 md:border-r border-app-border px-5 py-5 flex flex-col justify-between gap-4">
@@ -135,7 +135,7 @@ export default function RevenueChart({
           {avgLineY !== null && hasData && (
             <div className="absolute left-0 right-0 z-10 pointer-events-none" style={{ top: `${avgLineY}px` }}>
               <div className="relative border-t-2 border-dashed border-wine-400/60">
-                <span className="absolute left-1 -top-4 text-[9px] font-mono font-bold text-wine-400 bg-app-card border border-wine-400/30 px-1.5 py-0.5 rounded-md leading-none whitespace-nowrap">
+                <span className="absolute left-1 -top-4 text-[9px] font-mono font-bold text-wine-400 bg-app-surface border border-wine-400/30 px-1.5 py-0.5 rounded-md leading-none whitespace-nowrap">
                   {lang === 'pt' ? 'méd.' : 'prom.'} {fmtCompact(displayAvg)}
                 </span>
               </div>
@@ -146,7 +146,7 @@ export default function RevenueChart({
           {hasData && Math.abs(maxTotal - displayAvg) > maxTotal * 0.02 && (
             <div className="absolute left-0 right-0 z-10 pointer-events-none" style={{ top: 0 }}>
               <div className="relative border-t border-dashed border-app-text3/25">
-                <span className="absolute right-1 -top-4 text-[9px] font-mono text-app-text3 bg-app-card border border-app-border/60 px-1.5 py-0.5 rounded-md leading-none whitespace-nowrap">
+                <span className="absolute right-1 -top-4 text-[9px] font-mono text-app-text3 bg-app-surface border border-app-border/60 px-1.5 py-0.5 rounded-md leading-none whitespace-nowrap">
                   máx {fmtCompact(maxTotal)}
                 </span>
               </div>
@@ -223,7 +223,7 @@ export default function RevenueChart({
                             />
                           )
                         })
-                      : <div className="w-full h-full rounded-t" style={{ backgroundColor: '#6b7280', opacity: 0.3 }} />
+                      : <div className="w-full h-full rounded-t" style={{ backgroundColor: '#6b7280', opacity: 0.55 }} />
                     }
                   </div>
                 </div>

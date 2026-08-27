@@ -226,7 +226,7 @@ export default function DashboardView({
       {/* Orders table */}
       <div data-tour="orders-table" className="mt-4">
         {filteredOrders.length === 0 ? (
-          <div className="bg-app-card rounded-2xl border border-app-border p-8 text-center text-app-text3 text-sm">
+          <div className="bg-app-surface rounded-2xl border border-app-border p-8 text-center text-app-text3 text-sm">
             {lang === 'pt' ? 'Nenhum pedido no período selecionado.' : 'Sin pedidos en el período seleccionado.'}
           </div>
         ) : (

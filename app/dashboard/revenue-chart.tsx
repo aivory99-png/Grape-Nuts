@@ -282,10 +282,29 @@ export default function RevenueChart({
         </div>
 
         {/* Month labels */}
-        <div className="flex gap-1 mt-2">
-          {months.map(label => (
-            <div key={label} className="flex-1 text-[8px] text-app-text3 text-center truncate">{label}</div>
-          ))}
+        <div className="flex gap-1 mt-1">
+          {months.map((label, mi) => {
+            const rawTotal = (allTotals ?? totals)[mi] ?? 0
+            const isHov = hovered === mi
+            const isSelected = hasSelection && selectedIndices.includes(mi)
+            const active = isHov || isSelected
+            return (
+              <div
+                key={label}
+                className={`flex-1 flex flex-col items-center gap-0.5 rounded-md py-1 transition-colors select-none ${onBarClick ? 'cursor-pointer' : ''} ${isHov ? 'bg-app-bg/60' : ''}`}
+                onMouseEnter={() => setHovered(mi)}
+                onMouseLeave={() => setHovered(null)}
+                onClick={() => onBarClick?.(mi)}
+              >
+                <span className={`text-[8px] text-center truncate w-full leading-none transition-colors ${active ? 'text-app-text font-bold' : 'text-app-text3'}`}>
+                  {label}
+                </span>
+                <span className={`text-[9px] font-mono font-bold tabular-nums leading-none transition-opacity ${active && rawTotal > 0 ? 'opacity-100 text-wine-500' : 'opacity-0'}`}>
+                  {rawTotal > 0 ? fmtCompact(rawTotal) : ' '}
+                </span>
+              </div>
+            )
+          })}
         </div>
 
         {!hasData && (

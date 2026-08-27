@@ -140,7 +140,7 @@ export async function createOrder(data: {
     revalidatePath('/dashboard')
     return { success: true, orderId: order.id }
   } catch (err) {
-    console.error('[vendas] createOrder:', err instanceof Error ? err.message : String(err))
+    console.error('[vendas] createOrder:', err instanceof Error ? err.name : String(err))
     return { error: 'Erro inesperado ao processar pedido.' }
   }
 }
@@ -276,7 +276,7 @@ export async function updateOrder(data: {
     revalidatePath('/dashboard/vendas')
     return { success: true }
   } catch (err) {
-    console.error('[vendas] updateOrder:', err instanceof Error ? err.message : String(err))
+    console.error('[vendas] updateOrder:', err instanceof Error ? err.name : String(err))
     return { error: 'Erro inesperado ao atualizar pedido.' }
   }
 }
@@ -335,7 +335,7 @@ export async function deleteOrder(
     revalidatePath('/dashboard/vendas')
     return { success: true }
   } catch (err) {
-    console.error('[vendas] deleteOrder:', err instanceof Error ? err.message : String(err))
+    console.error('[vendas] deleteOrder:', err instanceof Error ? err.name : String(err))
     return { error: 'Erro inesperado ao eliminar pedido.' }
   }
 }

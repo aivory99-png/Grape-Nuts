@@ -17,7 +17,7 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch (e) {
-            console.error('[supabase/server] Failed to set session cookie:', e)
+            console.error('[supabase/server] Failed to set session cookie:', e instanceof Error ? e.name : String(e))
           }
         },
       },

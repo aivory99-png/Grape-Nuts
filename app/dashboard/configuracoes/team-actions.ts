@@ -26,10 +26,13 @@ export async function inviteTeamMember(data: {
 
   const admin = getAdmin()
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (!appUrl) { console.error('[team] NEXT_PUBLIC_APP_URL not set'); return { error: 'Configuração do servidor incompleta.' } }
+
   const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
     data.email,
     {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/auth/callback`,
+      redirectTo: `${appUrl}/auth/callback`,
       data: { name: data.name },
     }
   )

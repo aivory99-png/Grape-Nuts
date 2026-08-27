@@ -80,6 +80,10 @@ export async function createSeller(
   const orgId = await getOrgId()
   if (!orgId) return { error: 'Organização não encontrada.' }
 
+  const { data: callerProfile } = await supabase
+    .from('user_profiles').select('role').eq('id', user.id).single()
+  if (callerProfile?.role !== 'admin') return { error: 'Acesso negado.' }
+
   const admin = getAdminClient()
 
   // Auto-generate a unique internal email (sellers don't need login access)

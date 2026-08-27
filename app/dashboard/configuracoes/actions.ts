@@ -44,6 +44,10 @@ export async function updateSeller(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autenticado.' }
 
+  const { data: callerProfile } = await supabase
+    .from('user_profiles').select('role').eq('id', user.id).single()
+  if (callerProfile?.role !== 'admin') return { error: 'Acesso negado.' }
+
   const orgId = await getOrgId()
   if (!orgId) return { error: 'Organização não encontrada.' }
 
@@ -80,6 +84,10 @@ export async function deleteSeller(sellerId: string): Promise<{ success?: boolea
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autenticado.' }
+
+  const { data: callerProfile } = await supabase
+    .from('user_profiles').select('role').eq('id', user.id).single()
+  if (callerProfile?.role !== 'admin') return { error: 'Acesso negado.' }
 
   const orgId = await getOrgId()
   if (!orgId) return { error: 'Organização não encontrada.' }

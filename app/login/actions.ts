@@ -70,7 +70,9 @@ export async function resetPassword(_state: unknown, formData: FormData) {
   const email = formData.get('email') as string
   if (!email) return { error: 'Ingresa tu email.' }
 
-  const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/update-password`
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (!appUrl) { console.error('[auth] NEXT_PUBLIC_APP_URL not set'); return { error: 'Configuração do servidor incompleta.' } }
+  const redirectTo = `${appUrl}/update-password`
 
   const supabase = await makeClient()
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })

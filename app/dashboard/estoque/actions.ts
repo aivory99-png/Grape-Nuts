@@ -28,7 +28,7 @@ export async function updateStockEntry(
   // Verify entry belongs to caller's organization before using admin client (CN-003)
   const { data: entryCheck } = await admin()
     .from('stock_entries')
-    .select('organization_id')
+    .select('organization_id, wine_id')
     .eq('id', id)
     .single()
   if (entryCheck?.organization_id !== orgId) return { error: 'Acesso negado.' }
@@ -45,11 +45,11 @@ export async function updateStockEntry(
 
   if (error) { console.error('[estoque] update entry:', error?.code); return { error: 'Erro ao atualizar entrada.' } }
 
-  if (data.wineId !== undefined) {
+  if (entryCheck?.wine_id !== undefined) {
     await admin()
       .from('wines')
       .update({ min_stock: data.minStock ?? null })
-      .eq('id', data.wineId)
+      .eq('id', entryCheck.wine_id)
   }
 
   revalidatePath('/dashboard/estoque')
@@ -81,7 +81,7 @@ export async function addRestockEntry(
   if (!existing) return { error: 'Entrada não encontrada.' }
 
   // Verify entry belongs to caller's organization (CN-003)
-  if (existing.organization_id && existing.organization_id !== orgId) {
+  if (existing.organization_id !== orgId) {
     return { error: 'Acesso negado.' }
   }
 
@@ -169,7 +169,7 @@ export async function deleteStockEntry(
   // Delete associated order_items first (cascade)
   await admin().from('order_items').delete().eq('stock_entry_id', id)
 
-  const { error } = await admin().from('stock_entries').delete().eq('id', id)
+  const { error } = await admin().from('stock_entries').delete().eq('id', id).eq('organization_id', orgId)
   if (error) { console.error('[estoque] delete entry:', error?.code); return { error: 'Erro ao excluir entrada.' } }
 
   // If no other stock entries reference this wine, delete the wine too

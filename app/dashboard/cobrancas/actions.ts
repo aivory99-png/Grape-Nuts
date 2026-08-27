@@ -130,7 +130,7 @@ export async function updateOrderStatus(
 
 export async function updatePaymentDue(
   paymentId: string,
-  data: { due_date?: string; amount?: number }
+  data: { due_date?: string; amount?: number; paid_at?: string | null }
 ): Promise<void> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -149,6 +149,8 @@ export async function updatePaymentDue(
   const update: Record<string, unknown> = {}
   if (data.due_date !== undefined) update.due_date = data.due_date || null
   if (data.amount   !== undefined) update.amount   = data.amount
+  if (data.paid_at  !== undefined) update.paid_at  = data.paid_at || null
   if (Object.keys(update).length) await supabase.from('payments').update(update).eq('id', paymentId)
   revalidatePath('/dashboard')
+  revalidatePath('/dashboard/cobrancas')
 }

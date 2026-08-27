@@ -75,7 +75,7 @@ function toInputDate(d: string | null) {
   return d ? d.slice(0, 10) : ''
 }
 
-type EditCell = { rowId: string; field: 'chargedValue' | 'paymentType' | 'dueDate' | 'chargedAmount' | 'orderDate' } | null
+type EditCell = { rowId: string; field: 'chargedValue' | 'paymentType' | 'dueDate' | 'chargedAmount' | 'orderDate' | 'paidDate' } | null
 
 const COL_COUNT = 14
 
@@ -88,6 +88,7 @@ export default function OrdersTable({ rows: initialRows, lang }: { rows: OrderRo
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [paidBanner, setPaidBanner] = useState<{ rowId: string; clientName: string; date: string; paymentId: string | null } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Sorting
@@ -223,15 +224,27 @@ export default function OrdersTable({ rows: initialRows, lang }: { rows: OrderRo
     } else if (editing.field === 'orderDate' && editVal) {
       setRows(prev => prev.map(r => r.id === editing.rowId ? { ...r, orderDate: editVal } : r))
       await updateOrderValues(editing.rowId, { order_date: editVal })
+    } else if (editing.field === 'paidDate' && row.paymentId) {
+      setRows(prev => prev.map(r => r.id === editing.rowId ? { ...r, paidDate: editVal || null } : r))
+      await updatePaymentDue(row.paymentId, { paid_at: editVal || null })
+      setPaidBanner(prev => prev && prev.rowId === editing.rowId ? { ...prev, date: editVal } : prev)
     }
     setSaving(false)
     setEditing(null)
+  }
+
+  async function updateBannerDate(newDate: string) {
+    if (!paidBanner?.paymentId) return
+    setRows(prev => prev.map(r => r.id === paidBanner.rowId ? { ...r, paidDate: newDate || null } : r))
+    setPaidBanner(prev => prev ? { ...prev, date: newDate } : prev)
+    await updatePaymentDue(paidBanner.paymentId, { paid_at: newDate || null })
   }
 
   async function handleStatusChange(rowId: string, newStatus: string, paymentId: string | null) {
     if (saving) return
     setSaving(true)
     const today = new Date().toISOString().split('T')[0]
+    const row = rows.find(r => r.id === rowId)
     setRows(prev => prev.map(r => {
       if (r.id !== rowId) return r
       const mapped = newStatus as OrderRow['status']
@@ -242,6 +255,11 @@ export default function OrdersTable({ rows: initialRows, lang }: { rows: OrderRo
       }
     }))
     await updateOrderStatus(rowId, newStatus, paymentId)
+    if (newStatus === 'paid' && row) {
+      setPaidBanner({ rowId, clientName: row.clientName, date: today, paymentId })
+    } else if (paidBanner?.rowId === rowId) {
+      setPaidBanner(null)
+    }
     setSaving(false)
   }
 
@@ -264,6 +282,25 @@ export default function OrdersTable({ rows: initialRows, lang }: { rows: OrderRo
         <div className="px-4 py-3 bg-red-50 border-b border-red-200 text-xs text-red-600 flex items-center justify-between">
           {deleteError}
           <button onClick={() => setDeleteError(null)} className="text-red-400 hover:text-red-600">✕</button>
+        </div>
+      )}
+
+      {paidBanner && (
+        <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200 text-xs text-emerald-800 flex items-center justify-between gap-3 flex-wrap">
+          <span>
+            <span className="font-semibold">{paidBanner.clientName}</span>{' '}
+            {lang === 'pt' ? 'marcado como cobrado. Data do pagamento:' : 'marcado como cobrado. Fecha de pago:'}
+          </span>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={paidBanner.date}
+              onChange={e => updateBannerDate(e.target.value)}
+              disabled={!paidBanner.paymentId}
+              className="px-2 py-1 rounded border border-emerald-300 bg-white text-emerald-800 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-50"
+            />
+            <button onClick={() => setPaidBanner(null)} className="text-emerald-500 hover:text-emerald-700">✕</button>
+          </div>
         </div>
       )}
 
@@ -522,9 +559,28 @@ export default function OrdersTable({ rows: initialRows, lang }: { rows: OrderRo
                       )}
                     </td>
 
-                    {/* Pago el */}
+                    {/* Pago el — editable */}
                     <td className={td}>
-                      <span className="font-mono text-[11px] text-app-text2">{fmtDate(row.paidDate, lang)}</span>
+                      {isEditingRow && editing?.field === 'paidDate' ? (
+                        <input
+                          ref={inputRef}
+                          type="date"
+                          value={editVal}
+                          onChange={e => setEditVal(e.target.value)}
+                          onBlur={commitEdit}
+                          onKeyDown={e => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') setEditing(null) }}
+                          className={editInp}
+                          style={{ width: 110 }}
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => row.paymentId && startEdit(row.id, 'paidDate', toInputDate(row.paidDate))}
+                          className="font-mono text-[11px] text-app-text2 hover:text-wine-600 hover:underline cursor-text text-left w-full"
+                        >
+                          {fmtDate(row.paidDate, lang)}
+                        </button>
+                      )}
                     </td>
 
                     {/* Costo */}

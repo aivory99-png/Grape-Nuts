@@ -342,10 +342,6 @@ export default function GuidedTour({
   if (isIntro) {
     return (
       <>
-        <style>{`
-          @keyframes gn-fade-up { from { opacity:0; transform:translateY(16px) } to { opacity:1; transform:none } }
-          .gn-fade-up { animation: gn-fade-up .4s ease both }
-        `}</style>
         <div
           className="fixed inset-0 z-[9900] flex items-center justify-center p-5"
           style={{ background: 'rgba(10,5,18,0.85)', backdropFilter: 'blur(4px)' }}
@@ -477,15 +473,6 @@ export default function GuidedTour({
 
   return (
     <>
-      <style>{`
-        @keyframes gn-pulse-ring {
-          0%   { transform:scale(1);     opacity:.9; }
-          50%  { transform:scale(1.035); opacity:.35; }
-          100% { transform:scale(1);     opacity:.9; }
-        }
-        .gn-ring { animation: gn-pulse-ring 1.9s ease-in-out infinite; }
-      `}</style>
-
       <div
         ref={overlayRef}
         className="fixed inset-0 z-[9900]"
@@ -528,7 +515,7 @@ export default function GuidedTour({
         {!navigating && (
           <div
             ref={cardRef}
-            className="absolute rounded-3xl shadow-2xl overflow-hidden bg-app-card"
+            className="absolute rounded-3xl shadow-2xl overflow-hidden bg-app-surface"
             style={{ width: 340, top: pos.top, left: pos.left, zIndex: 9910, pointerEvents: 'auto' }}
           >
             {/* Gradient header */}

@@ -93,3 +93,17 @@ body {
   scrollbar-width: thin;
   scrollbar-color: var(--color-app-border) transparent;
 }
+
+/* ── Guided tour animations (moved here to satisfy CSP style-src 'self') ── */
+@keyframes gn-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+.gn-fade-up { animation: gn-fade-up .4s ease both; }
+
+@keyframes gn-pulse-ring {
+  0%   { transform: scale(1);     opacity: .9; }
+  50%  { transform: scale(1.035); opacity: .35; }
+  100% { transform: scale(1);     opacity: .9; }
+}
+.gn-ring { animation: gn-pulse-ring 1.9s ease-in-out infinite; }

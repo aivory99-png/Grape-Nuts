@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, startTransition } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import GrapesNutsLogo from '@/components/logo'
@@ -260,10 +260,10 @@ export default function GuidedTour({
   useEffect(() => {
     if (!active || isIntro) return
     if (pathname !== stepCfg.page) {
-      setNavigating(true); setTargetRect(null); setCardPos(null)
+      startTransition(() => { setNavigating(true); setTargetRect(null); setCardPos(null) })
       router.push(stepCfg.page)
     } else {
-      setNavigating(false)
+      startTransition(() => setNavigating(false))
     }
   }, [active, stepIdx, stepCfg.page, isIntro, pathname, router])
 

@@ -172,6 +172,14 @@ export default function RevenueChart({
                   onMouseLeave={() => setHovered(null)}
                   onClick={() => onBarClick?.(mi)}
                 >
+
+                  {(isHov || (hasSelection && selectedIndices.includes(mi))) && rawTotal > 0 && (
+                    <div className="absolute top-2 left-0 right-0 flex justify-center pointer-events-none z-20">
+                      <span className="text-[9px] font-mono font-bold text-white bg-wine-600 rounded px-1.5 py-0.5 leading-none shadow-md whitespace-nowrap">
+                        {fmtCompact(rawTotal)}
+                      </span>
+                    </div>
+                  )}
                   <div
                     className={`w-full rounded-t overflow-hidden flex flex-col-reverse transition-all duration-150 ${isHov ? 'brightness-110 scale-y-[1.02] origin-bottom' : ''}`}
                     style={{
@@ -282,26 +290,19 @@ export default function RevenueChart({
         </div>
 
         {/* Month labels */}
-        <div className="flex gap-1 mt-1">
+        <div className="flex gap-1 mt-2">
           {months.map((label, mi) => {
-            const rawTotal = (allTotals ?? totals)[mi] ?? 0
             const isHov = hovered === mi
             const isSelected = hasSelection && selectedIndices.includes(mi)
-            const active = isHov || isSelected
             return (
               <div
                 key={label}
-                className={`flex-1 flex flex-col items-center gap-0.5 rounded-md py-1 transition-colors select-none ${onBarClick ? 'cursor-pointer' : ''} ${isHov ? 'bg-app-bg/60' : ''}`}
+                className={`flex-1 text-[8px] text-center truncate select-none transition-colors ${onBarClick ? 'cursor-pointer' : ''} ${isHov || isSelected ? 'text-app-text font-bold' : 'text-app-text3'}`}
                 onMouseEnter={() => setHovered(mi)}
                 onMouseLeave={() => setHovered(null)}
                 onClick={() => onBarClick?.(mi)}
               >
-                <span className={`text-[8px] text-center truncate w-full leading-none transition-colors ${active ? 'text-app-text font-bold' : 'text-app-text3'}`}>
-                  {label}
-                </span>
-                <span className={`text-[9px] font-mono font-bold tabular-nums leading-none transition-opacity ${active && rawTotal > 0 ? 'opacity-100 text-wine-500' : 'opacity-0'}`}>
-                  {rawTotal > 0 ? fmtCompact(rawTotal) : ' '}
-                </span>
+                {label}
               </div>
             )
           })}

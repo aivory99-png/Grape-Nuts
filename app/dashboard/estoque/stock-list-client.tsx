@@ -191,13 +191,13 @@ function PodiumSparkline({ data, color }: { data: number[]; color: string }) {
 }
 
 const wineTypeColor: Record<string, string> = {
-  tinto:     'bg-[#1e0a28] text-[#c084fc] ring-1 ring-[#7c3aed]/60',
-  branco:    'bg-[#251900] text-[#fcd34d] ring-1 ring-[#b45309]/60',
-  rose:      'bg-[#2d0518] text-[#fda4af] ring-1 ring-[#e11d48]/50',
-  rosé:      'bg-[#2d0518] text-[#fda4af] ring-1 ring-[#e11d48]/50',
-  espumante: 'bg-[#071428] text-[#93c5fd] ring-1 ring-[#1d4ed8]/60',
-  laranja:   'bg-[#280f00] text-[#fb923c] ring-1 ring-[#c2410c]/60',
-  outro:     'bg-[#18181b] text-[#a1a1aa] ring-1 ring-[#52525b]/50',
+  tinto:     'bg-purple-400/10 text-[#c084fc]',
+  branco:    'bg-amber-400/10 text-[#fcd34d]',
+  rose:      'bg-rose-400/10 text-[#fda4af]',
+  rosé:      'bg-rose-400/10 text-[#fda4af]',
+  espumante: 'bg-sky-400/10 text-[#93c5fd]',
+  laranja:   'bg-orange-400/10 text-[#fb923c]',
+  outro:     'bg-zinc-400/10 text-[#a1a1aa]',
 }
 
 const MEDAL = ['🥇', '🥈', '🥉', '4', '5']
